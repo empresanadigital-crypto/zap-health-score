@@ -1,0 +1,206 @@
+import { motion } from "framer-motion";
+import { Shield, MessageSquare, Users, TrendingUp, AlertTriangle, CheckCircle, Info } from "lucide-react";
+
+const HealthResult = () => {
+  const score = 74;
+  const circumference = 2 * Math.PI * 58;
+  const offset = circumference * (1 - score / 100);
+
+  const getScoreColor = (s: number) => {
+    if (s >= 80) return "text-success";
+    if (s >= 50) return "text-warning";
+    return "text-destructive";
+  };
+
+  const getScoreLabel = (s: number) => {
+    if (s >= 80) return "Saudável";
+    if (s >= 50) return "Moderado";
+    return "Em Risco";
+  };
+
+  const metrics = [
+    { icon: MessageSquare, label: "Conversas ativas", value: "47", status: "good" as const },
+    { icon: Users, label: "Grupos participando", value: "23", status: "good" as const },
+    { icon: TrendingUp, label: "Dias de aquecimento", value: "12", status: "warning" as const },
+    { icon: Shield, label: "Nível de confiança", value: "Médio", status: "warning" as const },
+  ];
+
+  const recommendations = [
+    {
+      type: "success" as const,
+      icon: CheckCircle,
+      title: "Volume de disparo seguro",
+      description: "Seu número pode enviar entre 30 a 50 mensagens para contatos não conhecidos sem risco de banimento.",
+    },
+    {
+      type: "warning" as const,
+      icon: AlertTriangle,
+      title: "Aumente a atividade em grupos",
+      description: "Participe mais ativamente de 3-5 grupos por dia para fortalecer a reputação do número.",
+    },
+    {
+      type: "info" as const,
+      icon: Info,
+      title: "Varie os horários de envio",
+      description: "Distribua seus disparos ao longo do dia, evitando picos de envio em horários concentrados.",
+    },
+    {
+      type: "warning" as const,
+      icon: AlertTriangle,
+      title: "Evite links no primeiro contato",
+      description: "Nas primeiras mensagens para desconhecidos, evite enviar links. Comece com texto simples.",
+    },
+    {
+      type: "success" as const,
+      icon: CheckCircle,
+      title: "Perfil bem configurado",
+      description: "Foto, status e nome estão configurados corretamente. Isso aumenta a confiança do número.",
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="w-full max-w-3xl space-y-8"
+    >
+      {/* Score */}
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-44 h-44">
+          <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
+            <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--border))" strokeWidth="5" />
+            <motion.circle
+              cx="64" cy="64" r="58" fill="none"
+              stroke="hsl(var(--primary))"
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              initial={{ strokeDashoffset: circumference }}
+              animate={{ strokeDashoffset: offset }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <motion.span
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              className={`text-5xl font-bold font-mono ${getScoreColor(score)}`}
+            >
+              {score}
+            </motion.span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider mt-1">de 100</span>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <h3 className={`text-xl font-bold ${getScoreColor(score)}`}>
+            {getScoreLabel(score)}
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Seu número tem um nível moderado de saúde
+          </p>
+        </div>
+      </div>
+
+      {/* Metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {metrics.map((metric, index) => {
+          const Icon = metric.icon;
+          return (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 + index * 0.1 }}
+              className="glass-card p-4 text-center"
+            >
+              <Icon className="w-5 h-5 mx-auto mb-2 text-primary" />
+              <p className="text-lg font-bold font-mono text-foreground">{metric.value}</p>
+              <p className="text-xs text-muted-foreground mt-1">{metric.label}</p>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Dispatch recommendation highlight */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1.2 }}
+        className="glass-card p-6 glow-green text-center"
+      >
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Shield className="w-6 h-6 text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Capacidade de Disparo</h3>
+        </div>
+        <div className="flex items-baseline justify-center gap-2">
+          <span className="text-4xl font-bold font-mono gradient-text">30 – 50</span>
+          <span className="text-muted-foreground">msgs/dia</span>
+        </div>
+        <p className="text-sm text-muted-foreground mt-2">
+          para contatos não conhecidos, sem risco de banimento
+        </p>
+      </motion.div>
+
+      {/* Recommendations */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-foreground">Recomendações</h3>
+        {recommendations.map((rec, index) => {
+          const Icon = rec.icon;
+          const colors = {
+            success: "border-success/30 bg-success/5",
+            warning: "border-warning/30 bg-warning/5",
+            info: "border-info/30 bg-info/5",
+          };
+          const iconColors = {
+            success: "text-success",
+            warning: "text-warning",
+            info: "text-info",
+          };
+
+          return (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.4 + index * 0.1 }}
+              className={`flex gap-4 p-4 rounded-xl border ${colors[rec.type]}`}
+            >
+              <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${iconColors[rec.type]}`} />
+              <div>
+                <p className="font-medium text-sm text-foreground">{rec.title}</p>
+                <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* CTA */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2 }}
+        className="text-center pt-4"
+      >
+        <button
+          onClick={() => window.location.reload()}
+          className="px-8 py-3 bg-secondary text-secondary-foreground font-medium rounded-xl hover:bg-secondary/80 transition-all mr-4"
+        >
+          Novo Diagnóstico
+        </button>
+        <a
+          href="https://readyzap.com.br/#pricing"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:brightness-110 transition-all glow-green-sm"
+        >
+          Começar Aquecimento
+        </a>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default HealthResult;
