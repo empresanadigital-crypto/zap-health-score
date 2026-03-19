@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export interface QRResponse {
   qr: string | null;
@@ -20,8 +20,7 @@ export interface AnalysisData {
 }
 
 async function proxyCall(endpoint: string, method: string = "GET"): Promise<any> {
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const url = `https://${projectId}.supabase.co/functions/v1/whatsapp-proxy?endpoint=${encodeURIComponent(endpoint)}`;
+  const url = `${SUPABASE_URL}/functions/v1/whatsapp-proxy?endpoint=${encodeURIComponent(endpoint)}`;
   
   const res = await fetch(url, {
     method,
