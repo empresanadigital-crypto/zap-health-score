@@ -447,8 +447,8 @@ install_app() {
   echo "[6/6] Installing app dependencies and starting PM2..."
   cd "$APP_DIR"
   npm init -y >/dev/null 2>&1
-  npm install express @whiskeysockets/baileys@6.7.7 qrcode pino
-  pm2 start "$SERVER_FILE" --name "$APP_NAME"
+  npm install express qrcode pino
+  npm install @whiskeysockets/baileys@github:kobie3717/Baileys#fix/405-platform-macos
   pm2 save
 }
 
