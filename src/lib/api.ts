@@ -1,4 +1,4 @@
-const API_BASE = "http://174.138.70.214:3333";
+const API_BASE = "https://174.138.70.214";
 
 export interface QRResponse {
   qr: string | null;
