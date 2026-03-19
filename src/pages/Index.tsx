@@ -1,17 +1,39 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, Shield, Zap } from "lucide-react";
-import QRCodeScanner from "@/components/QRCodeScanner";
-import AnalysisProgress from "@/components/AnalysisProgress";
-import HealthResult from "@/components/HealthResult";
+import { Shield, Search, Zap } from "lucide-react";
+import PhoneInput from "@/components/PhoneInput";
+import VerificationProgress from "@/components/VerificationProgress";
+import VerificationResultView from "@/components/VerificationResult";
+import { verifyPhone, type VerificationResult } from "@/lib/phoneVerification";
 
-type Step = "scan" | "analyzing" | "result";
+type Step = "input" | "verifying" | "result";
 
 const Index = () => {
-  const [step, setStep] = useState<Step>("scan");
+  const [step, setStep] = useState<Step>("input");
+  const [phone, setPhone] = useState("");
+  const [result, setResult] = useState<VerificationResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleScan = () => setStep("analyzing");
-  const handleComplete = useCallback(() => setStep("result"), []);
+  const handleVerify = (digits: string) => {
+    setPhone(digits);
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setStep("verifying");
+    }, 300);
+  };
+
+  const handleComplete = useCallback(() => {
+    const res = verifyPhone(phone);
+    setResult(res);
+    setStep("result");
+  }, [phone]);
+
+  const handleReset = () => {
+    setStep("input");
+    setPhone("");
+    setResult(null);
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -26,49 +48,46 @@ const Index = () => {
         <header className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
           <div className="flex items-center gap-2">
             <Zap className="w-6 h-6 text-primary" />
-            <span className="font-bold text-lg text-foreground">ReadyZap</span>
+            <span className="font-bold text-lg text-foreground">CheckZap</span>
           </div>
-          <a
-            href="https://readyzap.com.br"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Voltar ao site
-          </a>
         </header>
 
         {/* Main */}
         <main className="max-w-5xl mx-auto px-6 py-12 md:py-20">
-          {/* Hero - always visible */}
+          {/* Hero */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-12"
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
-              <Activity className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">Diagnóstico inteligente</span>
+              <Search className="w-4 h-4 text-primary" />
+              <span className="text-sm text-primary font-medium">Verificação gratuita</span>
             </div>
 
             <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
-              Descubra a <span className="gradient-text">saúde</span> do seu
-              <br className="hidden md:block" /> número WhatsApp
+              Verifique qualquer número
+              <br className="hidden md:block" />{" "}
+              de <span className="gradient-text">WhatsApp</span>
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto text-base md:text-lg">
-              Nossa IA analisa suas conversas, grupos e padrões de uso para dizer
-              quantas mensagens você pode disparar com segurança.
+              Descubra se um número é válido, tem WhatsApp ativo,
+              se é spam ou consta em listas negras. Sem cadastro, sem login.
             </p>
 
             {/* Trust badges */}
             <div className="flex items-center justify-center gap-6 mt-8 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <Shield className="w-4 h-4 text-primary/70" />
-                <span>Criptografia AES-256</span>
+                <span>100% gratuito</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-primary/70" />
-                <span>Análise em tempo real</span>
+                <Shield className="w-4 h-4 text-primary/70" />
+                <span>Sem cadastro</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-primary/70" />
+                <span>Dados não armazenados</span>
               </div>
             </div>
           </motion.div>
@@ -76,19 +95,19 @@ const Index = () => {
           {/* Step content */}
           <div className="flex justify-center">
             <AnimatePresence mode="wait">
-              {step === "scan" && (
-                <motion.div key="scan" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
-                  <QRCodeScanner onScan={handleScan} />
+              {step === "input" && (
+                <motion.div key="input" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                  <PhoneInput onVerify={handleVerify} isLoading={isLoading} />
                 </motion.div>
               )}
-              {step === "analyzing" && (
-                <motion.div key="analyzing" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
-                  <AnalysisProgress onComplete={handleComplete} />
+              {step === "verifying" && (
+                <motion.div key="verifying" exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                  <VerificationProgress onComplete={handleComplete} />
                 </motion.div>
               )}
-              {step === "result" && (
+              {step === "result" && result && (
                 <motion.div key="result">
-                  <HealthResult />
+                  <VerificationResultView result={result} phone={phone} onReset={handleReset} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -96,8 +115,9 @@ const Index = () => {
         </main>
 
         {/* Footer */}
-        <footer className="text-center py-8 text-xs text-muted-foreground">
-          <p>© 2026 ReadyZap · Automação inteligente de WhatsApp</p>
+        <footer className="text-center py-8 text-xs text-muted-foreground space-y-2">
+          <p>Os resultados são apenas informativos e não substituem verificação oficial.</p>
+          <p>© 2026 CheckZap · Verificação inteligente de números</p>
         </footer>
       </div>
     </div>
