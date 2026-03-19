@@ -449,6 +449,7 @@ install_app() {
   npm init -y >/dev/null 2>&1
   npm install express qrcode pino
   npm install @whiskeysockets/baileys@github:kobie3717/Baileys#fix/405-platform-macos
+  pm2 start "$SERVER_FILE" --name "$APP_NAME"
   pm2 save
 }
 
