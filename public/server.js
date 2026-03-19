@@ -1,15 +1,19 @@
-const express = require("express");
-const { default: makeWASocket, useMultiFileAuthState, Browsers, DisconnectReason } = require("@whiskeysockets/baileys");
-const QRCode = require("qrcode");
-const pino = require("pino");
-const fs = require("fs");
-const path = require("path");
+var express = require("express");
+var baileys = require("@whiskeysockets/baileys");
+var makeWASocket = baileys.default;
+var useMultiFileAuthState = baileys.useMultiFileAuthState;
+var Browsers = baileys.Browsers;
+var DisconnectReason = baileys.DisconnectReason;
+var QRCode = require("qrcode");
+var pino = require("pino");
+var fs = require("fs");
+var path = require("path");
 
-const app = express();
+var app = express();
 app.use(express.json());
 
-const AUTH_DIR = path.join(__dirname, "auth_state");
-let sessionCounter = 0;
+var AUTH_DIR = path.join(__dirname, "auth_state");
+var sessionCounter = 0;
 
 function createState() {
   return {
@@ -21,24 +25,28 @@ function createState() {
     lastError: null,
     connectedAt: null,
     lastChatUpdateAt: 0,
-    sessionId: sessionCounter,
+    sessionId: sessionCounter
   };
 }
 
-let state = createState();
+var state = createState();
 
 function ensureAuthDir() {
-  if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR, { recursive: true });
+  if (!fs.existsSync(AUTH_DIR)) {
+    fs.mkdirSync(AUTH_DIR, { recursive: true });
+  }
 }
 
 function clearAuthState() {
-  if (fs.existsSync(AUTH_DIR)) fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+  if (fs.existsSync(AUTH_DIR)) {
+    fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+  }
 }
 
 function closeSocket(sock) {
   if (!sock) return;
-  try { sock.end(); } catch {}
-  try { sock.ws && sock.ws.close && sock.ws.close(); } catch {}
+  try { sock.end(); } catch (e) {}
+  try { if (sock.ws && sock.ws.close) sock.ws.close(); } catch (e) {}
 }
 
 function resetState() {
@@ -49,18 +57,19 @@ function resetState() {
 }
 
 function wait(ms) {
-  return new Promise((r) => setTimeout(r, ms));
+  return new Promise(function (resolve) { setTimeout(resolve, ms); });
 }
 
 function updateChats(chats) {
   if (!Array.isArray(chats) || chats.length === 0) return;
-  let changed = 0;
-  for (const chat of chats) {
+  var changed = 0;
+  for (var i = 0; i < chats.length; i++) {
+    var chat = chats[i];
     if (!chat || typeof chat !== "object") continue;
-    const id = chat.id || chat.jid;
+    var id = chat.id || chat.jid;
     if (!id) continue;
-    const prev = state.chats.get(id) || {};
-    state.chats.set(id, { ...prev, ...chat });
+    var prev = state.chats.get(id) || {};
+    state.chats.set(id, Object.assign({}, prev, chat));
     changed++;
   }
   if (changed > 0) {
@@ -71,86 +80,114 @@ function updateChats(chats) {
 
 function normalizeTs(value) {
   if (!value) return null;
-  if (typeof value === "object" && typeof value.low === "number") return value.low > 0 ? value.low : null;
-  const n = Number(value);
+  if (typeof value === "object" && typeof value.low === "number") {
+    return value.low > 0 ? value.low : null;
+  }
+  var n = Number(value);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
 }
 
-async function waitForHistory(sessionId) {
-  const start = Date.now();
-  const maxWait = 25000;
-  const quiet = 2500;
-  while (Date.now() - start < maxWait) {
-    if (state.sessionId !== sessionId) return false;
-    if (state.status === "error" || state.status === "disconnected") return false;
-    const elapsed = Date.now() - start;
-    const quietFor = Date.now() - state.lastChatUpdateAt;
-    if ((state.chats.size > 0 && quietFor >= quiet) || elapsed >= 8000) return true;
-    await wait(500);
-  }
-  return true;
+function waitForHistory(sessionId) {
+  var start = Date.now();
+  var maxWait = 25000;
+  var quietMs = 2500;
+
+  return new Promise(function (resolve) {
+    function check() {
+      if (state.sessionId !== sessionId) return resolve(false);
+      if (state.status === "error" || state.status === "disconnected") return resolve(false);
+      var elapsed = Date.now() - start;
+      var quietFor = Date.now() - state.lastChatUpdateAt;
+      if ((state.chats.size > 0 && quietFor >= quietMs) || elapsed >= 8000) return resolve(true);
+      if (elapsed >= maxWait) return resolve(true);
+      setTimeout(check, 500);
+    }
+    check();
+  });
 }
 
-async function collectData(sock) {
+function collectData(sock) {
   console.log("[collect] Coletando dados...");
-  const data = {
-    phone: null, name: null, hasProfilePic: null, hasStatus: null,
-    groupCount: null, chatCount: null, oldestMessageTimestamp: null,
-    groups: [], timestamp: Date.now(),
+  var data = {
+    phone: null,
+    name: null,
+    hasProfilePic: null,
+    hasStatus: null,
+    groupCount: null,
+    chatCount: null,
+    oldestMessageTimestamp: null,
+    groups: [],
+    timestamp: Date.now()
   };
 
-  try {
-    if (sock.user) {
-      data.phone = sock.user.id || null;
-      data.name = sock.user.name || null;
-    }
-  } catch (e) { console.error("[collect] user:", e.message); }
+  if (sock.user) {
+    data.phone = sock.user.id || null;
+    data.name = sock.user.name || null;
+  }
 
-  try {
-    if (sock.user?.id) {
-      const pic = await sock.profilePictureUrl(sock.user.id, "image").catch(() => null);
+  var promises = [];
+
+  // Profile pic
+  promises.push(
+    (sock.user && sock.user.id
+      ? sock.profilePictureUrl(sock.user.id, "image").catch(function () { return null; })
+      : Promise.resolve(null)
+    ).then(function (pic) {
       data.hasProfilePic = !!pic;
-    }
-  } catch (e) { console.error("[collect] pic:", e.message); }
+      console.log("[collect] hasProfilePic:", data.hasProfilePic);
+    })
+  );
 
-  try {
-    if (sock.user?.id) {
-      const s = await sock.fetchStatus(sock.user.id).catch(() => null);
+  // Status
+  promises.push(
+    (sock.user && sock.user.id
+      ? sock.fetchStatus(sock.user.id).catch(function () { return null; })
+      : Promise.resolve(null)
+    ).then(function (s) {
       data.hasStatus = !!(s && s.status);
-    }
-  } catch (e) { console.error("[collect] status:", e.message); }
+      console.log("[collect] hasStatus:", data.hasStatus);
+    })
+  );
 
-  try {
-    const gm = await sock.groupFetchAllParticipating().catch(() => null);
-    if (gm && typeof gm === "object") {
-      const ids = Object.keys(gm);
-      data.groupCount = ids.length;
-      data.groups = ids.map((id) => ({
-        name: gm[id]?.subject || "Sem nome",
-        participants: Array.isArray(gm[id]?.participants) ? gm[id].participants.length : 0,
-      }));
-    }
-  } catch (e) { console.error("[collect] groups:", e.message); }
+  // Groups
+  promises.push(
+    sock.groupFetchAllParticipating().catch(function () { return null; }).then(function (gm) {
+      if (gm && typeof gm === "object") {
+        var ids = Object.keys(gm);
+        data.groupCount = ids.length;
+        data.groups = ids.map(function (id) {
+          return {
+            name: (gm[id] && gm[id].subject) ? gm[id].subject : "Sem nome",
+            participants: (gm[id] && Array.isArray(gm[id].participants)) ? gm[id].participants.length : 0
+          };
+        });
+      }
+      console.log("[collect] groupCount:", data.groupCount);
+    })
+  );
 
-  try {
-    const chats = Array.from(state.chats.values());
-    let count = 0, oldest = null;
-    for (const c of chats) {
-      const jid = c?.id || "";
-      if (!jid.endsWith("@s.whatsapp.net")) continue;
+  return Promise.all(promises).then(function () {
+    // Chats from memory
+    var arr = Array.from(state.chats.values());
+    var count = 0;
+    var oldest = null;
+    for (var i = 0; i < arr.length; i++) {
+      var c = arr[i];
+      var jid = (c && c.id) ? c.id : "";
+      if (jid.indexOf("@s.whatsapp.net") === -1) continue;
       count++;
-      const ts = normalizeTs(c.conversationTimestamp);
+      var ts = normalizeTs(c.conversationTimestamp);
       if (ts !== null && (oldest === null || ts < oldest)) oldest = ts;
     }
     data.chatCount = count > 0 ? count : null;
     data.oldestMessageTimestamp = oldest;
-  } catch (e) { console.error("[collect] chats:", e.message); }
-
-  console.log("[collect] Resultado:", JSON.stringify(data, null, 2));
-  return data;
+    console.log("[collect] chatCount:", data.chatCount, "oldestTs:", data.oldestMessageTimestamp);
+    console.log("[collect] Resultado:", JSON.stringify(data, null, 2));
+    return data;
+  });
 }
 
-async function startSession() {
+function startSession() {
   if (["connecting", "waiting_scan", "connected", "collecting"].includes(state.status)) return;
 
   ensureAuthDir();
@@ -162,97 +199,106 @@ async function startSession() {
   state.connectedAt = null;
   state.lastChatUpdateAt = Date.now();
 
-  const sessionId = state.sessionId;
-  const { state: authState, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+  var sessionId = state.sessionId;
 
-  const sock = makeWASocket({
-    auth: authState,
-    printQRInTerminal: true,
-    logger: pino({ level: "silent" }),
-    browser: Browsers.ubuntu("Chrome"),
-    markOnlineOnConnect: false,
-    syncFullHistory: false,
-  });
+  useMultiFileAuthState(AUTH_DIR).then(function (auth) {
+    var sock = makeWASocket({
+      auth: auth.state,
+      printQRInTerminal: true,
+      logger: pino({ level: "silent" }),
+      browser: Browsers.ubuntu("Chrome"),
+      markOnlineOnConnect: false,
+      syncFullHistory: false
+    });
 
-  state.sock = sock;
+    state.sock = sock;
 
-  sock.ev.on("messaging-history.set", ({ chats }) => {
-    console.log("[history]", Array.isArray(chats) ? chats.length : 0, "chats");
-    updateChats(chats);
-  });
-  sock.ev.on("chats.set", ({ chats }) => updateChats(chats));
-  sock.ev.on("chats.upsert", (chats) => updateChats(chats));
-  sock.ev.on("creds.update", saveCreds);
+    sock.ev.on("messaging-history.set", function (msg) {
+      console.log("[history]", Array.isArray(msg.chats) ? msg.chats.length : 0, "chats");
+      updateChats(msg.chats);
+    });
 
-  sock.ev.on("connection.update", async (update) => {
-    if (state.sessionId !== sessionId) return;
+    sock.ev.on("chats.set", function (msg) {
+      updateChats(msg.chats);
+    });
 
-    if (update.qr) {
-      try {
-        state.qrBase64 = await QRCode.toDataURL(update.qr, { width: 300 });
-        state.status = "waiting_scan";
-        console.log("[qr] QR gerado");
-      } catch (e) {
-        state.lastError = e.message;
-        state.status = "error";
-      }
-    }
+    sock.ev.on("chats.upsert", function (chats) {
+      updateChats(chats);
+    });
 
-    if (update.connection === "open") {
-      console.log("[conn] Conectado!");
-      state.status = "connected";
-      state.qrBase64 = null;
-      state.connectedAt = Date.now();
-      state.lastChatUpdateAt = Date.now();
+    sock.ev.on("creds.update", auth.saveCreds);
 
-      try {
-        await wait(3000);
-        if (state.sessionId !== sessionId) return;
-        state.status = "collecting";
-        await waitForHistory(sessionId);
-        if (state.sessionId !== sessionId) return;
-        const data = await collectData(sock);
-        if (state.sessionId !== sessionId) return;
-        state.analysisData = data;
-        state.status = "ready";
-        state.lastError = null;
-        console.log("[collect] Pronto! Sessão permanece ativa.");
-        // NÃO desconecta automaticamente
-      } catch (e) {
-        state.lastError = e.message;
-        state.status = "error";
-        console.error("[collect] Erro:", e.message);
-      }
-    }
+    sock.ev.on("connection.update", function (update) {
+      if (state.sessionId !== sessionId) return;
 
-    if (update.connection === "close") {
-      const code = update.lastDisconnect?.error?.output?.statusCode;
-      console.log("[conn] Desconectado, code:", code);
-
-      if (code === DisconnectReason.loggedOut) {
-        console.log("[conn] Logged out, limpando auth...");
-        clearAuthState();
+      if (update.qr) {
+        QRCode.toDataURL(update.qr, { width: 300 }).then(function (url) {
+          state.qrBase64 = url;
+          state.status = "waiting_scan";
+          console.log("[qr] QR gerado");
+        }).catch(function (e) {
+          state.lastError = e.message;
+          state.status = "error";
+        });
       }
 
-      if (state.status !== "ready") {
-        state.status = "disconnected";
+      if (update.connection === "open") {
+        console.log("[conn] Conectado!");
+        state.status = "connected";
         state.qrBase64 = null;
-        state.sock = null;
-        state.lastError = code ? "connection_closed_" + code : "connection_closed";
+        state.connectedAt = Date.now();
+        state.lastChatUpdateAt = Date.now();
+
+        wait(3000).then(function () {
+          if (state.sessionId !== sessionId) return;
+          state.status = "collecting";
+          return waitForHistory(sessionId);
+        }).then(function (ok) {
+          if (!ok || state.sessionId !== sessionId) return;
+          return collectData(sock);
+        }).then(function (data) {
+          if (!data || state.sessionId !== sessionId) return;
+          state.analysisData = data;
+          state.status = "ready";
+          state.lastError = null;
+          console.log("[done] Dados prontos. Sessao permanece ativa.");
+        }).catch(function (e) {
+          state.lastError = e.message;
+          state.status = "error";
+          console.error("[collect] Erro:", e.message);
+        });
       }
-    }
+
+      if (update.connection === "close") {
+        var ld = update.lastDisconnect;
+        var code = (ld && ld.error && ld.error.output) ? ld.error.output.statusCode : null;
+        console.log("[conn] Desconectado, code:", code);
+
+        if (code === DisconnectReason.loggedOut) {
+          clearAuthState();
+        }
+
+        if (state.status !== "ready") {
+          state.status = "disconnected";
+          state.qrBase64 = null;
+          state.sock = null;
+          state.lastError = code ? "connection_closed_" + code : "connection_closed";
+        }
+      }
+    });
+  }).catch(function (e) {
+    state.lastError = e.message;
+    state.status = "error";
+    console.error("[start] Erro:", e.message);
   });
 }
 
 // --- ROTAS ---
 
-app.get("/api/qr", async (req, res) => {
+app.get("/api/qr", function (req, res) {
   if (["idle", "disconnected", "error"].includes(state.status)) {
     resetState();
-    startSession().catch((e) => {
-      state.lastError = e.message;
-      state.status = "error";
-    });
+    startSession();
     return res.json({ qr: null, status: "connecting" });
   }
   if (["connected", "collecting", "ready"].includes(state.status)) {
@@ -261,28 +307,27 @@ app.get("/api/qr", async (req, res) => {
   return res.json({ qr: state.qrBase64, status: state.status });
 });
 
-app.get("/api/status", (req, res) => {
+app.get("/api/status", function (req, res) {
   res.json({ status: state.status, error: state.lastError });
 });
 
-app.get("/api/analysis", (req, res) => {
+app.get("/api/analysis", function (req, res) {
   if (state.status === "ready" && state.analysisData) {
     return res.json({ ready: true, data: state.analysisData });
   }
   return res.json({ ready: false, status: state.status });
 });
 
-app.post("/api/disconnect", (req, res) => {
+app.post("/api/disconnect", function (req, res) {
   console.log("[disconnect] Desconectando...");
   resetState();
   res.json({ ok: true });
 });
 
-app.get("/api/health", (req, res) => {
+app.get("/api/health", function (req, res) {
   res.json({ ok: true, uptime: process.uptime(), chats: state.chats.size, status: state.status });
 });
 
-const PORT = 3333;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`[server] ReadyZap rodando na porta ${PORT}`);
+app.listen(3333, "0.0.0.0", function () {
+  console.log("[server] ReadyZap rodando na porta 3333");
 });
