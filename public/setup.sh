@@ -293,12 +293,21 @@ function startSession() {
 
   var sessionId = state.sessionId;
 
-  useMultiFileAuthState(AUTH_DIR).then(function (auth) {
+  Promise.all([
+    useMultiFileAuthState(AUTH_DIR),
+    fetchLatestBaileysVersion()
+  ]).then(function (results) {
+    var auth = results[0];
+    var versionInfo = results[1];
+    var waVersion = versionInfo.version;
+    console.log("[start] Using WA version:", waVersion);
+
     var sock = makeWASocket({
       auth: auth.state,
+      version: waVersion,
       printQRInTerminal: true,
       logger: pino({ level: "silent" }),
-      browser: Browsers.ubuntu("Chrome"),
+      browser: Browsers.macOS("Chrome"),
       markOnlineOnConnect: false,
       syncFullHistory: false
     });
