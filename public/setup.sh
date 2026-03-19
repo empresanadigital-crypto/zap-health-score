@@ -5,10 +5,10 @@ echo "=== ReadyZap VPS Setup ==="
 
 # 1. Instalar dependencias
 cd /root
-npm install express @whiskeysockets/baileys qrcode pino 2>/dev/null || {
+npm install express @whiskeysockets/baileys@6.7.7 qrcode pino 2>/dev/null || {
   echo "Instalando npm..."
   apt-get update && apt-get install -y nodejs npm
-  npm install express @whiskeysockets/baileys qrcode pino
+  npm install express @whiskeysockets/baileys@6.7.7 qrcode pino
 }
 
 # 2. Instalar PM2
@@ -24,7 +24,7 @@ node -e '
 const fs = require("fs");
 const code = `
 const express = require("express");
-const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
+const { default: makeWASocket, useMultiFileAuthState, Browsers } = require("@whiskeysockets/baileys");
 const QRCode = require("qrcode");
 const pino = require("pino");
 const fs2 = require("fs");
@@ -253,14 +253,15 @@ async function startSession() {
 
   const sessionId = state.sessionId;
   const { state: authState, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-  const { version } = await fetchLatestBaileysVersion();
 
   const sock = makeWASocket({
-    version,
+    version: [2, 3000, 1033893291],
     auth: authState,
     printQRInTerminal: false,
     logger: pino({ level: "silent" }),
-    browser: ["ReadyZap", "Chrome", "1.0.0"],
+    browser: Browsers.macOS("Desktop"),
+    markOnlineOnConnect: false,
+    syncFullHistory: false,
   });
 
   state.sock = sock;
