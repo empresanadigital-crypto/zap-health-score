@@ -25,6 +25,11 @@ const Index = () => {
     try {
       const aiResult = await analyzeWithAI(rawData);
       setHealthScore(convertAIResultToScore(aiResult));
+      try {
+        await disconnectSession();
+      } catch {
+        // ignora erro de disconnect, análise já foi concluída
+      }
       setStep("result");
     } catch (err) {
       console.error("AI analysis failed:", err);

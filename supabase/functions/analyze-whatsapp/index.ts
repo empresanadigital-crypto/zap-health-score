@@ -229,7 +229,7 @@ const enhanceCopyWithAI = async ({
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         temperature: 0.2,
         messages: [
           {
