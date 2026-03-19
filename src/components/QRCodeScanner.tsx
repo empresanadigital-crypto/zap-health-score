@@ -13,9 +13,9 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
   const [status, setStatus] = useState<string>("idle");
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const connectedRef = useRef(false);
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
-
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
       clearInterval(pollRef.current);
