@@ -100,6 +100,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     setError(null);
     setQrImage(null);
     setStatus("idle");
+    connectedRef.current = false;
     setTimeout(() => setStarted(true), 100);
   };
 
