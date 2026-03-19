@@ -5,10 +5,10 @@ echo "=== ReadyZap VPS Setup ==="
 
 # 1. Instalar dependencias
 cd /root
-npm install express @whiskeysockets/baileys qrcode pino 2>/dev/null || {
+npm install express @whiskeysockets/baileys@6.7.7 qrcode pino 2>/dev/null || {
   echo "Instalando npm..."
   apt-get update && apt-get install -y nodejs npm
-  npm install express @whiskeysockets/baileys qrcode pino
+  npm install express @whiskeysockets/baileys@6.7.7 qrcode pino
 }
 
 # 2. Instalar PM2
