@@ -255,11 +255,11 @@ async function startSession() {
   const { state: authState, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
 
   const sock = makeWASocket({
-    version: [2, 3000, 1033893291],
+    version: [2, 3000, 1015901307],
     auth: authState,
     printQRInTerminal: false,
     logger: pino({ level: "silent" }),
-    browser: Browsers.macOS("Desktop"),
+    browser: Browsers.macOS("Chrome"),
     markOnlineOnConnect: false,
     syncFullHistory: false,
   });
