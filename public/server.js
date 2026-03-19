@@ -2,6 +2,7 @@ var express = require("express");
 var baileys = require("@whiskeysockets/baileys");
 var makeWASocket = baileys.default;
 var useMultiFileAuthState = baileys.useMultiFileAuthState;
+var fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
 var Browsers = baileys.Browsers;
 var DisconnectReason = baileys.DisconnectReason;
 var QRCode = require("qrcode");
@@ -237,12 +238,21 @@ function startSession() {
 
   var sessionId = state.sessionId;
 
-  useMultiFileAuthState(AUTH_DIR).then(function (auth) {
+  Promise.all([
+    useMultiFileAuthState(AUTH_DIR),
+    fetchLatestBaileysVersion()
+  ]).then(function (results) {
+    var auth = results[0];
+    var versionInfo = results[1];
+    var waVersion = versionInfo.version;
+    console.log("[start] Using WA version:", waVersion);
+
     var sock = makeWASocket({
       auth: auth.state,
+      version: waVersion,
       printQRInTerminal: true,
       logger: pino({ level: "silent" }),
-      browser: Browsers.ubuntu("Chrome"),
+      browser: Browsers.macOS("Chrome"),
       markOnlineOnConnect: false,
       syncFullHistory: false
     });
