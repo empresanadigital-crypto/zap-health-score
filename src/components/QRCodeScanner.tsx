@@ -13,9 +13,9 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
   const [status, setStatus] = useState<string>("idle");
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const connectedRef = useRef(false);
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
-
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
       clearInterval(pollRef.current);
@@ -27,35 +27,53 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     if (!started) return;
 
     let cancelled = false;
+    connectedRef.current = false;
     setStatus("loading");
     setError(null);
 
     const poll = async () => {
       try {
-        const qrRes = await fetchQR();
-        if (cancelled) return;
-
-        setStatus(qrRes.status);
-        setError(null);
-
-        if (qrRes.qr) {
-          setQrImage(qrRes.qr);
-        } else if (qrRes.status !== "connected") {
-          setQrImage(null);
-        }
-
-        if (qrRes.status === "connected") {
-          setQrImage(null);
-          setStatus("collecting");
+        // Once connected, only poll analysis — never go back to QR
+        if (connectedRef.current) {
           const analysis = await fetchAnalysis();
           if (cancelled) return;
           if (analysis.ready && analysis.data) {
             stopPolling();
             onScanRef.current(analysis.data);
           }
+          // Keep polling analysis until ready — don't check QR anymore
+          return;
+        }
+
+        const qrRes = await fetchQR();
+        if (cancelled) return;
+
+        setError(null);
+
+        if (qrRes.status === "connected") {
+          // Lock into connected state — never revert
+          connectedRef.current = true;
+          setQrImage(null);
+          setStatus("collecting");
+          // Immediately try analysis
+          const analysis = await fetchAnalysis();
+          if (cancelled) return;
+          if (analysis.ready && analysis.data) {
+            stopPolling();
+            onScanRef.current(analysis.data);
+          }
+          return;
+        }
+
+        setStatus(qrRes.status);
+
+        if (qrRes.qr) {
+          setQrImage(qrRes.qr);
+        } else {
+          setQrImage(null);
         }
       } catch {
-        if (!cancelled) {
+        if (!cancelled && !connectedRef.current) {
           setError("Não foi possível conectar ao servidor.");
           setStatus("error");
         }
@@ -82,6 +100,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     setError(null);
     setQrImage(null);
     setStatus("idle");
+    connectedRef.current = false;
     setTimeout(() => setStarted(true), 100);
   };
 
