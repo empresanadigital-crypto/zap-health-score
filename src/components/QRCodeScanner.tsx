@@ -1,11 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Smartphone, QrCode, Loader2, WifiOff, Play, RefreshCw, AlertTriangle } from "lucide-react";
+import { Smartphone, QrCode, Loader2, WifiOff, Play, RefreshCw } from "lucide-react";
 import { fetchQR, fetchAnalysis, type AnalysisData } from "@/lib/api";
 
 interface QRCodeScannerProps {
   onScan: (data: NonNullable<AnalysisData["data"]>) => void;
 }
+
+const ANALYSIS_FRESHNESS_TOLERANCE_MS = 15000;
+
+const normalizeTimestamp = (timestamp: number) => {
+  return timestamp < 1_000_000_000_000 ? timestamp * 1000 : timestamp;
+};
 
 const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
   const [started, setStarted] = useState(false);
@@ -14,8 +20,10 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const connectedRef = useRef(false);
+  const sessionStartedAtRef = useRef(0);
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
+
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
       clearInterval(pollRef.current);
@@ -28,44 +36,54 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
 
     let cancelled = false;
     connectedRef.current = false;
+    sessionStartedAtRef.current = Date.now();
     setStatus("loading");
     setError(null);
+    setQrImage(null);
+
+    const fetchFreshAnalysis = async () => {
+      const analysis = await fetchAnalysis();
+      if (cancelled || !analysis.ready || !analysis.data) return false;
+
+      const analysisTimestamp = normalizeTimestamp(analysis.data.timestamp);
+      const isFreshAnalysis = analysisTimestamp >= sessionStartedAtRef.current - ANALYSIS_FRESHNESS_TOLERANCE_MS;
+
+      if (!isFreshAnalysis) {
+        console.warn("[analysis] Payload antigo da VPS ignorado", {
+          analysisTimestamp,
+          sessionStartedAt: sessionStartedAtRef.current,
+        });
+        setStatus("collecting");
+        return false;
+      }
+
+      stopPolling();
+      onScanRef.current(analysis.data);
+      return true;
+    };
 
     const poll = async () => {
       try {
-        // Once connected, only poll analysis — never go back to QR
         if (connectedRef.current) {
-          const analysis = await fetchAnalysis();
-          if (cancelled) return;
-          if (analysis.ready && analysis.data) {
-            stopPolling();
-            onScanRef.current(analysis.data);
-          }
-          // Keep polling analysis until ready — don't check QR anymore
+          await fetchFreshAnalysis();
           return;
         }
 
         const qrRes = await fetchQR();
         if (cancelled) return;
 
+        console.info("[qr] Status bruto da VPS", qrRes.status);
         setError(null);
 
         if (qrRes.status === "connected") {
-          // Lock into connected state — never revert
           connectedRef.current = true;
           setQrImage(null);
           setStatus("collecting");
-          // Immediately try analysis
-          const analysis = await fetchAnalysis();
-          if (cancelled) return;
-          if (analysis.ready && analysis.data) {
-            stopPolling();
-            onScanRef.current(analysis.data);
-          }
+          await fetchFreshAnalysis();
           return;
         }
 
-        setStatus(qrRes.status);
+        setStatus(qrRes.status || "loading");
 
         if (qrRes.qr) {
           setQrImage(qrRes.qr);
@@ -93,6 +111,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     setStarted(true);
     setError(null);
     setQrImage(null);
+    setStatus("loading");
   };
 
   const handleRetry = () => {
@@ -101,8 +120,12 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     setQrImage(null);
     setStatus("idle");
     connectedRef.current = false;
+    sessionStartedAtRef.current = 0;
     setTimeout(() => setStarted(true), 100);
   };
+
+  const isWaitingForSession = !error && !qrImage;
+  const isCollecting = status === "collecting" || status === "connected";
 
   if (!started) {
     return (
@@ -181,14 +204,12 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
           <div className="flex flex-col items-center gap-4 p-8 text-center">
             <WifiOff className="w-12 h-12 text-destructive" />
             <p className="text-sm text-destructive">{error}</p>
-            <button onClick={handleRetry} className="px-6 py-2 text-sm bg-primary text-primary-foreground rounded-xl hover:brightness-110 transition-all">
+            <button
+              onClick={handleRetry}
+              className="px-6 py-2 text-sm bg-primary text-primary-foreground rounded-xl hover:brightness-110 transition-all"
+            >
               Tentar novamente
             </button>
-          </div>
-        ) : status === "collecting" || status === "connected" ? (
-          <div className="flex flex-col items-center gap-4 p-8 text-center">
-            <Loader2 className="w-10 h-10 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground">WhatsApp conectado! Coletando dados...</p>
           </div>
         ) : qrImage ? (
           <div className="flex flex-col items-center gap-4">
@@ -197,16 +218,20 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
               <div className="absolute inset-0 rounded-xl border-2 border-primary/30" />
             </div>
             <p className="text-xs text-muted-foreground text-center">
-              Se o código expirar, clique em tentar novamente.
+              Se o código expirar, clique em reiniciar conexão.
             </p>
           </div>
-        ) : status === "disconnected" ? (
-          <div className="flex flex-col items-center gap-4 p-6 text-center">
-            <AlertTriangle className="w-12 h-12 text-warning" />
+        ) : isWaitingForSession ? (
+          <div className="flex flex-col items-center gap-4 p-8 w-full justify-center text-center">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
             <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Servidor online, mas o WhatsApp não gerou o QR</p>
+              <p className="text-sm font-medium text-foreground">
+                {isCollecting ? "Conectando... aguarde." : "Gerando conexão... aguarde."}
+              </p>
               <p className="text-sm text-muted-foreground">
-                A VPS respondeu <span className="font-mono text-foreground">disconnected</span>. Isso é problema da sessão do Baileys na VPS, não do site.
+                {isCollecting
+                  ? "QR lido. Estamos aguardando dados reais da sessão atual antes de mostrar qualquer resultado."
+                  : "Estamos estabilizando a sessão com o WhatsApp para gerar ou validar o QR Code."}
               </p>
             </div>
             <button
@@ -214,15 +239,10 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:brightness-110 transition-all"
             >
               <RefreshCw className="w-4 h-4" />
-              Atualizar status
+              Reiniciar conexão
             </button>
           </div>
-        ) : (
-          <div className="flex flex-col items-center gap-4 p-8 w-full justify-center text-center">
-            <Loader2 className="w-10 h-10 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
-          </div>
-        )}
+        ) : null}
       </div>
 
       <div className="flex items-start gap-3 glass-card p-4 w-full">
@@ -239,4 +259,3 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
 };
 
 export default QRCodeScanner;
-

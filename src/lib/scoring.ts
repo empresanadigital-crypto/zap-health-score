@@ -59,7 +59,7 @@ export function calculateScoreFromAPI(data: NonNullable<AnalysisData["data"]>): 
 
   const metrics = {
     chatsLabel: "Não medido",
-    groupsLabel: data.groupCount === 0 ? "Nenhum" : `${data.groupCount} grupos`,
+    groupsLabel: data.groupCount === 0 ? "0 na VPS" : `${data.groupCount} na VPS`,
     warmupDays: "Não medido",
     trustLevel: measuredScore >= 20 ? "Parcial alto" : measuredScore >= 10 ? "Parcial médio" : "Parcial baixo",
   };
@@ -68,7 +68,7 @@ export function calculateScoreFromAPI(data: NonNullable<AnalysisData["data"]>): 
     {
       type: "warning",
       title: "Resultado parcial com dados reais",
-      description: "Hoje a análise usa apenas grupos, foto de perfil e status. Idade da conta, conversas ativas e histórico de disparos ainda não estão sendo medidos pela VPS.",
+      description: "Hoje a análise usa apenas a resposta bruta da VPS para grupos, foto de perfil e status. Idade da conta, conversas ativas e histórico de disparos ainda não estão sendo medidos.",
     },
   ];
 
@@ -93,21 +93,21 @@ export function calculateScoreFromAPI(data: NonNullable<AnalysisData["data"]>): 
   if (data.groupCount === 0) {
     recommendations.push({
       type: "warning",
-      title: "Nenhum grupo detectado",
-      description: "A VPS não encontrou grupos nessa sessão. Isso reduz a base real usada na análise.",
+      title: "Nenhum grupo retornado pela VPS",
+      description: "A VPS respondeu zero grupos nesta sessão. Se isso estiver errado, o ajuste precisa ser feito no coletor da VPS.",
     });
   } else {
     recommendations.push({
-      type: "success",
-      title: "Grupos detectados com dados reais",
-      description: `${data.groupCount} grupo(s) foram lidos diretamente da sessão do WhatsApp.`,
+      type: "info",
+      title: "Contagem bruta de grupos da VPS",
+      description: `${data.groupCount} grupo(s) vieram da resposta da VPS nesta sessão. O site não inventa esse número, só exibe o total devolvido pelo coletor.`,
     });
   }
 
   recommendations.push({
     type: "info",
     title: "Próximo passo para precisão real",
-    description: "Para medir conversas ativas e histórico de envio sem inventar números, precisamos ampliar o coletor da VPS para sincronizar chats individuais e registrar volume de disparos ao longo do tempo.",
+    description: "Para medir conversas ativas e histórico de envio sem inventar números, a VPS precisa sincronizar chats individuais reais e salvar eventos de envio ao longo do tempo.",
   });
 
   return {
@@ -120,7 +120,7 @@ export function calculateScoreFromAPI(data: NonNullable<AnalysisData["data"]>): 
       isPartial: true,
       measuredCount,
       totalSignals,
-      summary: "Dados reais lidos: grupos, foto de perfil e status. Dados ainda não medidos: idade da conta, conversas ativas e histórico de disparos.",
+      summary: "Dados reais desta sessão: contagem bruta de grupos, foto de perfil e status. Ainda não medidos: conversas ativas, idade da conta e histórico de disparos.",
     },
     recommendations,
   };
