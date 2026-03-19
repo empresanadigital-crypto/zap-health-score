@@ -38,13 +38,20 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-3xl space-y-8"
     >
-      {/* Score */}
+      <div className="glass-card p-4 border border-warning/30 bg-warning/5 text-center">
+        <p className="text-sm font-medium text-foreground">Diagnóstico parcial com dados reais</p>
+        <p className="text-sm text-muted-foreground mt-1">{score.source.summary}</p>
+      </div>
+
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-44 h-44">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
             <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--border))" strokeWidth="5" />
             <motion.circle
-              cx="64" cy="64" r="58" fill="none"
+              cx="64"
+              cy="64"
+              r="58"
+              fill="none"
               stroke="hsl(var(--primary))"
               strokeWidth="5"
               strokeLinecap="round"
@@ -63,23 +70,18 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
             >
               {score.total}
             </motion.span>
-            <span className="text-xs text-muted-foreground uppercase tracking-wider mt-1">de 100</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-wider mt-1">score parcial</span>
           </div>
         </div>
 
         <div className="text-center">
           <h3 className={`text-xl font-bold ${getScoreColor(score.total)}`}>{score.label}</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {score.total >= 80
-              ? "Seu número tem uma excelente saúde"
-              : score.total >= 50
-              ? "Seu número tem um nível moderado de saúde"
-              : "Seu número está em risco — siga as recomendações abaixo"}
+            Esse resultado usa somente sinais que a VPS realmente conseguiu medir nesta sessão.
           </p>
         </div>
       </div>
 
-      {/* Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {metrics.map((metric, index) => {
           const Icon = metric.icon;
@@ -99,7 +101,6 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
         })}
       </div>
 
-      {/* Dispatch capacity */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -108,7 +109,7 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
       >
         <div className="flex items-center justify-center gap-2 mb-3">
           <Shield className="w-6 h-6 text-primary" />
-          <h3 className="text-lg font-bold text-foreground">Capacidade de Disparo</h3>
+          <h3 className="text-lg font-bold text-foreground">Faixa conservadora de disparo</h3>
         </div>
         <div className="flex items-baseline justify-center gap-2">
           <span className="text-4xl font-bold font-mono gradient-text">
@@ -117,11 +118,10 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
           <span className="text-muted-foreground">msgs/dia</span>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          para contatos não conhecidos, sem risco de banimento
+          recomendação segura enquanto a análise ainda está parcial
         </p>
       </motion.div>
 
-      {/* Recommendations */}
       <div className="space-y-3">
         <h3 className="text-lg font-semibold text-foreground">Recomendações</h3>
         {score.recommendations.map((rec, index) => {
@@ -144,7 +144,6 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
         })}
       </div>
 
-      {/* CTA */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

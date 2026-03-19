@@ -7,10 +7,10 @@ interface AnalysisProgressProps {
 }
 
 const steps = [
-  { icon: MessageSquare, label: "Analisando conversas recentes", detail: "1.847 mensagens encontradas" },
-  { icon: Users, label: "Verificando grupos ativos", detail: "23 grupos identificados" },
-  { icon: Shield, label: "Avaliando regras de aquecimento", detail: "Padrões de envio verificados" },
-  { icon: Activity, label: "Calculando score de saúde", detail: "Gerando relatório final" },
+  { icon: MessageSquare, label: "Sincronizando sessão conectada", detail: "Lendo os metadados autorizados do seu WhatsApp" },
+  { icon: Users, label: "Coletando grupos reais", detail: "Buscando grupos e participantes disponíveis na sessão" },
+  { icon: Shield, label: "Verificando perfil do número", detail: "Conferindo foto e status configurados" },
+  { icon: Activity, label: "Montando diagnóstico parcial", detail: "Mostrando apenas sinais realmente medidos" },
 ];
 
 const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
@@ -55,7 +55,10 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
         <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="52" fill="none" stroke="hsl(var(--border))" strokeWidth="6" />
           <circle
-            cx="60" cy="60" r="52" fill="none"
+            cx="60"
+            cy="60"
+            r="52"
+            fill="none"
             stroke="hsl(var(--primary))"
             strokeWidth="6"
             strokeLinecap="round"
