@@ -1,20 +1,34 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Smartphone, QrCode, Loader2, WifiOff } from "lucide-react";
-import { fetchQR, fetchAnalysis, disconnectSession, type AnalysisData } from "@/lib/api";
+import { Smartphone, QrCode, Loader2, WifiOff, Play } from "lucide-react";
+import { fetchQR, fetchAnalysis, type AnalysisData } from "@/lib/api";
 
 interface QRCodeScannerProps {
   onScan: (data: NonNullable<AnalysisData["data"]>) => void;
 }
 
 const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
+  const [started, setStarted] = useState(false);
   const [qrImage, setQrImage] = useState<string | null>(null);
-  const [status, setStatus] = useState<string>("loading");
+  const [status, setStatus] = useState<string>("idle");
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
+    if (!started) return;
+
     let cancelled = false;
+    setStatus("loading");
+    setError(null);
 
     const poll = async () => {
       try {
@@ -28,31 +42,104 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
         }
 
         if (qrRes.status === "connected") {
-          // Phone connected, now fetch analysis data
           setQrImage(null);
+          setStatus("collecting");
           const analysis = await fetchAnalysis();
           if (cancelled) return;
           if (analysis.ready && analysis.data) {
-            if (pollRef.current) clearInterval(pollRef.current);
-            onScan(analysis.data);
+            stopPolling();
+            onScanRef.current(analysis.data);
           }
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) {
-          setError("Não foi possível conectar ao servidor. Verifique se a API está rodando.");
+          setError("Não foi possível conectar ao servidor.");
           setStatus("error");
         }
       }
     };
 
     poll();
-    pollRef.current = setInterval(poll, 2500);
+    pollRef.current = setInterval(poll, 3000);
 
     return () => {
       cancelled = true;
-      if (pollRef.current) clearInterval(pollRef.current);
+      stopPolling();
     };
-  }, [onScan]);
+  }, [started, stopPolling]);
+
+  const handleStart = () => {
+    setStarted(true);
+    setError(null);
+    setQrImage(null);
+  };
+
+  const handleRetry = () => {
+    setStarted(false);
+    setError(null);
+    setQrImage(null);
+    setStatus("idle");
+    setTimeout(() => setStarted(true), 100);
+  };
+
+  if (!started) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center gap-6 w-full max-w-lg"
+      >
+        <div className="glass-card p-8 flex flex-col items-center gap-6 w-full">
+          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
+            <QrCode className="w-12 h-12 text-primary" />
+          </div>
+
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-foreground mb-2">
+              Diagnóstico via QR Code
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Conecte seu WhatsApp para uma análise completa e personalizada
+              do seu número.
+            </p>
+          </div>
+
+          <div className="w-full space-y-3 text-sm">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/30 border border-border/30">
+              <span className="text-primary font-bold mt-0.5">1</span>
+              <p className="text-muted-foreground">Clique em "Iniciar Diagnóstico"</p>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/30 border border-border/30">
+              <span className="text-primary font-bold mt-0.5">2</span>
+              <p className="text-muted-foreground">Escaneie o QR Code com seu WhatsApp</p>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/30 border border-border/30">
+              <span className="text-primary font-bold mt-0.5">3</span>
+              <p className="text-muted-foreground">Receba o relatório completo em segundos</p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleStart}
+            className="flex items-center gap-2 px-8 py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:brightness-110 transition-all glow-green-sm w-full justify-center"
+          >
+            <Play className="w-5 h-5" />
+            Iniciar Diagnóstico
+          </button>
+        </div>
+
+        <div className="flex items-start gap-3 glass-card p-4 w-full">
+          <Smartphone className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-foreground">Seus dados estão seguros</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              A sessão é temporária e desconectada automaticamente após a análise.
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -65,7 +152,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
         <h2 className="text-lg font-semibold text-foreground">Escaneie o QR Code</h2>
       </div>
       <p className="text-sm text-muted-foreground text-center -mt-4">
-        Abra o WhatsApp no celular → Configurações → Aparelhos conectados → Conectar aparelho
+        Abra o WhatsApp → Configurações → Aparelhos conectados → Conectar
       </p>
 
       <div className="glass-card p-6 glow-green-sm">
@@ -73,14 +160,11 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
           <div className="flex flex-col items-center gap-4 p-8">
             <WifiOff className="w-12 h-12 text-destructive" />
             <p className="text-sm text-destructive text-center">{error}</p>
-            <button
-              onClick={() => { setError(null); setStatus("loading"); }}
-              className="text-sm text-primary hover:underline"
-            >
+            <button onClick={handleRetry} className="px-6 py-2 text-sm bg-primary text-primary-foreground rounded-xl hover:brightness-110 transition-all">
               Tentar novamente
             </button>
           </div>
-        ) : status === "connected" ? (
+        ) : status === "collecting" || status === "connected" ? (
           <div className="flex flex-col items-center gap-4 p-8">
             <Loader2 className="w-10 h-10 text-primary animate-spin" />
             <p className="text-sm text-muted-foreground">WhatsApp conectado! Coletando dados...</p>
