@@ -253,14 +253,15 @@ async function startSession() {
 
   const sessionId = state.sessionId;
   const { state: authState, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-  const { version } = await fetchLatestBaileysVersion();
 
   const sock = makeWASocket({
-    version,
+    version: [2, 3000, 1033893291],
     auth: authState,
     printQRInTerminal: false,
     logger: pino({ level: "silent" }),
-    browser: ["ReadyZap", "Chrome", "1.0.0"],
+    browser: Browsers.macOS("Desktop"),
+    markOnlineOnConnect: false,
+    syncFullHistory: false,
   });
 
   state.sock = sock;
