@@ -14,9 +14,30 @@ export interface AnalysisData {
     hasProfilePic: boolean;
     hasStatus: boolean;
     groupCount: number;
+    chatCount?: number;
+    oldestMessageTimestamp?: number;
     groups: { name: string; participants: number }[];
     timestamp: number;
   };
+}
+
+export interface AIAnalysisResult {
+  score: number;
+  label: string;
+  accountAgeDays: number | null;
+  metrics: {
+    chatsLabel: string;
+    groupsLabel: string;
+    warmupDays: string;
+    trustLevel: string;
+  };
+  dispatchRange: { min: number; max: number };
+  recommendations: {
+    type: "success" | "warning" | "info";
+    title: string;
+    description: string;
+  }[];
+  analysisNotes: string;
 }
 
 async function proxyCall(endpoint: string, method: string = "GET"): Promise<any> {
@@ -43,4 +64,17 @@ export async function fetchAnalysis(): Promise<AnalysisData> {
 
 export async function disconnectSession(): Promise<void> {
   await proxyCall("/api/disconnect", "POST");
+}
+
+export async function analyzeWithAI(data: NonNullable<AnalysisData["data"]>): Promise<AIAnalysisResult> {
+  const url = `${SUPABASE_URL}/functions/v1/analyze-whatsapp`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    throw new Error(`AI analysis failed: ${res.status}`);
+  }
+  return res.json();
 }
