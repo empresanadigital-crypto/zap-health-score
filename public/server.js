@@ -2,6 +2,7 @@ var express = require("express");
 var baileys = require("@whiskeysockets/baileys");
 var makeWASocket = baileys.default;
 var useMultiFileAuthState = baileys.useMultiFileAuthState;
+var fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion;
 var Browsers = baileys.Browsers;
 var DisconnectReason = baileys.DisconnectReason;
 var QRCode = require("qrcode");
