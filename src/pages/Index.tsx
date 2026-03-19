@@ -4,7 +4,8 @@ import { Activity, Shield, Zap } from "lucide-react";
 import QRCodeScanner from "@/components/QRCodeScanner";
 import AnalysisProgress from "@/components/AnalysisProgress";
 import HealthResult from "@/components/HealthResult";
-import { calculateScore, type SurveyAnswers, type HealthScore } from "@/lib/scoring";
+import { calculateScoreFromAPI, type HealthScore } from "@/lib/scoring";
+import { disconnectSession, type AnalysisData } from "@/lib/api";
 
 type Step = "scan" | "analyzing" | "result";
 
@@ -12,14 +13,15 @@ const Index = () => {
   const [step, setStep] = useState<Step>("scan");
   const [healthScore, setHealthScore] = useState<HealthScore | null>(null);
 
-  const handleScan = (answers: SurveyAnswers) => {
-    setHealthScore(calculateScore(answers));
+  const handleScan = (data: NonNullable<AnalysisData["data"]>) => {
+    setHealthScore(calculateScoreFromAPI(data));
     setStep("analyzing");
   };
 
   const handleComplete = useCallback(() => setStep("result"), []);
 
-  const handleRestart = () => {
+  const handleRestart = async () => {
+    await disconnectSession();
     setStep("scan");
     setHealthScore(null);
   };
@@ -67,7 +69,7 @@ const Index = () => {
               <br className="hidden md:block" /> número WhatsApp
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto text-base md:text-lg">
-              Responda algumas perguntas rápidas e descubra quantas mensagens
+              Escaneie o QR Code e descubra em segundos quantas mensagens
               você pode disparar com segurança.
             </p>
 
@@ -79,7 +81,7 @@ const Index = () => {
               </div>
               <div className="flex items-center gap-1.5">
                 <Activity className="w-4 h-4 text-primary/70" />
-                <span>Análise instantânea</span>
+                <span>Análise em tempo real</span>
               </div>
             </div>
           </motion.div>
@@ -110,7 +112,7 @@ const Index = () => {
         <footer className="text-center py-8 space-y-2">
           <p className="text-xs text-muted-foreground">© 2026 ReadyZap · Automação inteligente de WhatsApp</p>
           <p className="text-xs text-muted-foreground/60 max-w-md mx-auto">
-            Este diagnóstico é estimado com base nas informações fornecidas. Resultados reais podem variar.
+            Diagnóstico baseado em dados reais do seu WhatsApp. Sessão desconectada após análise.
           </p>
         </footer>
       </div>
