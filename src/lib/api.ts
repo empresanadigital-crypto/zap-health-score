@@ -1,4 +1,4 @@
-const API_BASE = "https://174.138.70.214";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export interface QRResponse {
   qr: string | null;
@@ -19,21 +19,28 @@ export interface AnalysisData {
   };
 }
 
-export async function fetchQR(): Promise<QRResponse> {
-  const res = await fetch(`${API_BASE}/api/qr`);
+async function proxyCall(endpoint: string, method: string = "GET"): Promise<any> {
+  const url = `${SUPABASE_URL}/functions/v1/whatsapp-proxy?endpoint=${encodeURIComponent(endpoint)}`;
+  
+  const res = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+  });
   return res.json();
+}
+
+export async function fetchQR(): Promise<QRResponse> {
+  return proxyCall("/api/qr");
 }
 
 export async function fetchStatus(): Promise<{ status: string }> {
-  const res = await fetch(`${API_BASE}/api/status`);
-  return res.json();
+  return proxyCall("/api/status");
 }
 
 export async function fetchAnalysis(): Promise<AnalysisData> {
-  const res = await fetch(`${API_BASE}/api/analysis`);
-  return res.json();
+  return proxyCall("/api/analysis");
 }
 
 export async function disconnectSession(): Promise<void> {
-  await fetch(`${API_BASE}/api/disconnect`, { method: "POST" });
+  await proxyCall("/api/disconnect", "POST");
 }
