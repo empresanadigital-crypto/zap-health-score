@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Smartphone, QrCode, Loader2, WifiOff, Play, RefreshCw } from "lucide-react";
-import { fetchQR, fetchAnalysis, type AnalysisData } from "@/lib/api";
+import { fetchQR, fetchAnalysis, disconnectSession, type AnalysisData } from "@/lib/api";
 
 interface QRCodeScannerProps {
   onScan: (data: NonNullable<AnalysisData["data"]>) => void;
@@ -43,7 +43,27 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
 
     const fetchFreshAnalysis = async () => {
       const analysis = await fetchAnalysis();
-      if (cancelled || !analysis.ready || !analysis.data) return false;
+      if (cancelled) return false;
+
+      if (!analysis.ready || !analysis.data) {
+        const nextStatus = analysis.status || "collecting";
+
+        if (nextStatus === "error" || nextStatus === "disconnected") {
+          stopPolling();
+          connectedRef.current = false;
+          setQrImage(null);
+          setStatus(nextStatus);
+          setError(
+            nextStatus === "disconnected"
+              ? "A sessão caiu antes de concluir a leitura. Gere um novo QR e tente novamente."
+              : "A sessão falhou ao coletar os dados do WhatsApp. Tente novamente."
+          );
+        } else {
+          setStatus(nextStatus === "connected" ? "collecting" : nextStatus);
+        }
+
+        return false;
+      }
 
       const analysisTimestamp = normalizeTimestamp(analysis.data.timestamp);
       const isFreshAnalysis = analysisTimestamp >= sessionStartedAtRef.current - ANALYSIS_FRESHNESS_TOLERANCE_MS;
@@ -107,20 +127,36 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     };
   }, [started, stopPolling]);
 
-  const handleStart = () => {
+  const handleStart = async () => {
+    stopPolling();
+    try {
+      await disconnectSession();
+    } catch {
+      // ignora reset inicial
+    }
+    connectedRef.current = false;
+    sessionStartedAtRef.current = 0;
     setStarted(true);
     setError(null);
     setQrImage(null);
     setStatus("loading");
   };
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
+    stopPolling();
     setStarted(false);
     setError(null);
     setQrImage(null);
     setStatus("idle");
     connectedRef.current = false;
     sessionStartedAtRef.current = 0;
+
+    try {
+      await disconnectSession();
+    } catch {
+      // ignora falha ao limpar sessão antiga
+    }
+
     setTimeout(() => setStarted(true), 100);
   };
 
