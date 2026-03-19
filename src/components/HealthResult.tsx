@@ -1,10 +1,15 @@
 import { motion } from "framer-motion";
 import { Shield, MessageSquare, Users, TrendingUp, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import type { HealthScore } from "@/lib/scoring";
 
-const HealthResult = () => {
-  const score = 74;
+interface HealthResultProps {
+  score: HealthScore;
+  onRestart: () => void;
+}
+
+const HealthResult = ({ score, onRestart }: HealthResultProps) => {
   const circumference = 2 * Math.PI * 58;
-  const offset = circumference * (1 - score / 100);
+  const offset = circumference * (1 - score.total / 100);
 
   const getScoreColor = (s: number) => {
     if (s >= 80) return "text-success";
@@ -12,51 +17,20 @@ const HealthResult = () => {
     return "text-destructive";
   };
 
-  const getScoreLabel = (s: number) => {
-    if (s >= 80) return "Saudável";
-    if (s >= 50) return "Moderado";
-    return "Em Risco";
-  };
-
   const metrics = [
-    { icon: MessageSquare, label: "Conversas ativas", value: "47", status: "good" as const },
-    { icon: Users, label: "Grupos participando", value: "23", status: "good" as const },
-    { icon: TrendingUp, label: "Dias de aquecimento", value: "12", status: "warning" as const },
-    { icon: Shield, label: "Nível de confiança", value: "Médio", status: "warning" as const },
+    { icon: MessageSquare, label: "Conversas ativas", value: score.metrics.chatsLabel },
+    { icon: Users, label: "Grupos", value: score.metrics.groupsLabel },
+    { icon: TrendingUp, label: "Dias de atividade", value: score.metrics.warmupDays },
+    { icon: Shield, label: "Nível de confiança", value: score.metrics.trustLevel },
   ];
 
-  const recommendations = [
-    {
-      type: "success" as const,
-      icon: CheckCircle,
-      title: "Volume de disparo seguro",
-      description: "Seu número pode enviar entre 30 a 50 mensagens para contatos não conhecidos sem risco de banimento.",
-    },
-    {
-      type: "warning" as const,
-      icon: AlertTriangle,
-      title: "Aumente a atividade em grupos",
-      description: "Participe mais ativamente de 3-5 grupos por dia para fortalecer a reputação do número.",
-    },
-    {
-      type: "info" as const,
-      icon: Info,
-      title: "Varie os horários de envio",
-      description: "Distribua seus disparos ao longo do dia, evitando picos de envio em horários concentrados.",
-    },
-    {
-      type: "warning" as const,
-      icon: AlertTriangle,
-      title: "Evite links no primeiro contato",
-      description: "Nas primeiras mensagens para desconhecidos, evite enviar links. Comece com texto simples.",
-    },
-    {
-      type: "success" as const,
-      icon: CheckCircle,
-      title: "Perfil bem configurado",
-      description: "Foto, status e nome estão configurados corretamente. Isso aumenta a confiança do número.",
-    },
-  ];
+  const recIcons = { success: CheckCircle, warning: AlertTriangle, info: Info };
+  const recColors = {
+    success: "border-success/30 bg-success/5",
+    warning: "border-warning/30 bg-warning/5",
+    info: "border-info/30 bg-info/5",
+  };
+  const recIconColors = { success: "text-success", warning: "text-warning", info: "text-info" };
 
   return (
     <motion.div
@@ -85,20 +59,22 @@ const HealthResult = () => {
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
-              className={`text-5xl font-bold font-mono ${getScoreColor(score)}`}
+              className={`text-5xl font-bold font-mono ${getScoreColor(score.total)}`}
             >
-              {score}
+              {score.total}
             </motion.span>
             <span className="text-xs text-muted-foreground uppercase tracking-wider mt-1">de 100</span>
           </div>
         </div>
 
         <div className="text-center">
-          <h3 className={`text-xl font-bold ${getScoreColor(score)}`}>
-            {getScoreLabel(score)}
-          </h3>
+          <h3 className={`text-xl font-bold ${getScoreColor(score.total)}`}>{score.label}</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Seu número tem um nível moderado de saúde
+            {score.total >= 80
+              ? "Seu número tem uma excelente saúde"
+              : score.total >= 50
+              ? "Seu número tem um nível moderado de saúde"
+              : "Seu número está em risco — siga as recomendações abaixo"}
           </p>
         </div>
       </div>
@@ -123,7 +99,7 @@ const HealthResult = () => {
         })}
       </div>
 
-      {/* Dispatch recommendation highlight */}
+      {/* Dispatch capacity */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -135,7 +111,9 @@ const HealthResult = () => {
           <h3 className="text-lg font-bold text-foreground">Capacidade de Disparo</h3>
         </div>
         <div className="flex items-baseline justify-center gap-2">
-          <span className="text-4xl font-bold font-mono gradient-text">30 – 50</span>
+          <span className="text-4xl font-bold font-mono gradient-text">
+            {score.dispatchRange.min} – {score.dispatchRange.max}
+          </span>
           <span className="text-muted-foreground">msgs/dia</span>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
@@ -146,28 +124,17 @@ const HealthResult = () => {
       {/* Recommendations */}
       <div className="space-y-3">
         <h3 className="text-lg font-semibold text-foreground">Recomendações</h3>
-        {recommendations.map((rec, index) => {
-          const Icon = rec.icon;
-          const colors = {
-            success: "border-success/30 bg-success/5",
-            warning: "border-warning/30 bg-warning/5",
-            info: "border-info/30 bg-info/5",
-          };
-          const iconColors = {
-            success: "text-success",
-            warning: "text-warning",
-            info: "text-info",
-          };
-
+        {score.recommendations.map((rec, index) => {
+          const Icon = recIcons[rec.type];
           return (
             <motion.div
               key={index}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 1.4 + index * 0.1 }}
-              className={`flex gap-4 p-4 rounded-xl border ${colors[rec.type]}`}
+              className={`flex gap-4 p-4 rounded-xl border ${recColors[rec.type]}`}
             >
-              <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${iconColors[rec.type]}`} />
+              <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${recIconColors[rec.type]}`} />
               <div>
                 <p className="font-medium text-sm text-foreground">{rec.title}</p>
                 <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
@@ -185,7 +152,7 @@ const HealthResult = () => {
         className="text-center pt-4"
       >
         <button
-          onClick={() => window.location.reload()}
+          onClick={onRestart}
           className="px-8 py-3 bg-secondary text-secondary-foreground font-medium rounded-xl hover:bg-secondary/80 transition-all mr-4"
         >
           Novo Diagnóstico

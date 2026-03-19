@@ -4,14 +4,25 @@ import { Activity, Shield, Zap } from "lucide-react";
 import QRCodeScanner from "@/components/QRCodeScanner";
 import AnalysisProgress from "@/components/AnalysisProgress";
 import HealthResult from "@/components/HealthResult";
+import { calculateScore, type SurveyAnswers, type HealthScore } from "@/lib/scoring";
 
 type Step = "scan" | "analyzing" | "result";
 
 const Index = () => {
   const [step, setStep] = useState<Step>("scan");
+  const [healthScore, setHealthScore] = useState<HealthScore | null>(null);
 
-  const handleScan = () => setStep("analyzing");
+  const handleScan = (answers: SurveyAnswers) => {
+    setHealthScore(calculateScore(answers));
+    setStep("analyzing");
+  };
+
   const handleComplete = useCallback(() => setStep("result"), []);
+
+  const handleRestart = () => {
+    setStep("scan");
+    setHealthScore(null);
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -40,7 +51,7 @@ const Index = () => {
 
         {/* Main */}
         <main className="max-w-5xl mx-auto px-6 py-12 md:py-20">
-          {/* Hero - always visible */}
+          {/* Hero */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -56,19 +67,19 @@ const Index = () => {
               <br className="hidden md:block" /> número WhatsApp
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto text-base md:text-lg">
-              Nossa IA analisa suas conversas, grupos e padrões de uso para dizer
-              quantas mensagens você pode disparar com segurança.
+              Responda algumas perguntas rápidas e descubra quantas mensagens
+              você pode disparar com segurança.
             </p>
 
             {/* Trust badges */}
             <div className="flex items-center justify-center gap-6 mt-8 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <Shield className="w-4 h-4 text-primary/70" />
-                <span>Criptografia AES-256</span>
+                <span>100% gratuito</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Activity className="w-4 h-4 text-primary/70" />
-                <span>Análise em tempo real</span>
+                <span>Análise instantânea</span>
               </div>
             </div>
           </motion.div>
@@ -86,9 +97,9 @@ const Index = () => {
                   <AnalysisProgress onComplete={handleComplete} />
                 </motion.div>
               )}
-              {step === "result" && (
+              {step === "result" && healthScore && (
                 <motion.div key="result">
-                  <HealthResult />
+                  <HealthResult score={healthScore} onRestart={handleRestart} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -96,8 +107,11 @@ const Index = () => {
         </main>
 
         {/* Footer */}
-        <footer className="text-center py-8 text-xs text-muted-foreground">
-          <p>© 2026 ReadyZap · Automação inteligente de WhatsApp</p>
+        <footer className="text-center py-8 space-y-2">
+          <p className="text-xs text-muted-foreground">© 2026 ReadyZap · Automação inteligente de WhatsApp</p>
+          <p className="text-xs text-muted-foreground/60 max-w-md mx-auto">
+            Este diagnóstico é estimado com base nas informações fornecidas. Resultados reais podem variar.
+          </p>
         </footer>
       </div>
     </div>
