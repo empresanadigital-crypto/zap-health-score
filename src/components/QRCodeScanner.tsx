@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Smartphone, QrCode, Loader2, WifiOff, Play } from "lucide-react";
+import { Smartphone, QrCode, Loader2, WifiOff, Play, RefreshCw, AlertTriangle } from "lucide-react";
 import { fetchQR, fetchAnalysis, type AnalysisData } from "@/lib/api";
 
 interface QRCodeScannerProps {
@@ -34,11 +34,14 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
       try {
         const qrRes = await fetchQR();
         if (cancelled) return;
+
         setStatus(qrRes.status);
         setError(null);
 
         if (qrRes.qr) {
           setQrImage(qrRes.qr);
+        } else if (qrRes.status !== "connected") {
+          setQrImage(null);
         }
 
         if (qrRes.status === "connected") {
@@ -99,8 +102,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
               Diagnóstico via QR Code
             </h2>
             <p className="text-sm text-muted-foreground">
-              Conecte seu WhatsApp para uma análise completa e personalizada
-              do seu número.
+              Conecte seu WhatsApp para uma análise completa e personalizada do seu número.
             </p>
           </div>
 
@@ -155,27 +157,49 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
         Abra o WhatsApp → Configurações → Aparelhos conectados → Conectar
       </p>
 
-      <div className="glass-card p-6 glow-green-sm">
+      <div className="glass-card p-6 glow-green-sm w-full">
         {error ? (
-          <div className="flex flex-col items-center gap-4 p-8">
+          <div className="flex flex-col items-center gap-4 p-8 text-center">
             <WifiOff className="w-12 h-12 text-destructive" />
-            <p className="text-sm text-destructive text-center">{error}</p>
+            <p className="text-sm text-destructive">{error}</p>
             <button onClick={handleRetry} className="px-6 py-2 text-sm bg-primary text-primary-foreground rounded-xl hover:brightness-110 transition-all">
               Tentar novamente
             </button>
           </div>
         ) : status === "collecting" || status === "connected" ? (
-          <div className="flex flex-col items-center gap-4 p-8">
+          <div className="flex flex-col items-center gap-4 p-8 text-center">
             <Loader2 className="w-10 h-10 text-primary animate-spin" />
             <p className="text-sm text-muted-foreground">WhatsApp conectado! Coletando dados...</p>
           </div>
         ) : qrImage ? (
-          <div className="relative">
-            <img src={qrImage} alt="QR Code WhatsApp" className="w-64 h-64 rounded-xl" />
-            <div className="absolute inset-0 rounded-xl border-2 border-primary/30" />
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <img src={qrImage} alt="QR Code WhatsApp" className="w-64 h-64 rounded-xl" />
+              <div className="absolute inset-0 rounded-xl border-2 border-primary/30" />
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              Se o código expirar, clique em tentar novamente.
+            </p>
+          </div>
+        ) : status === "disconnected" ? (
+          <div className="flex flex-col items-center gap-4 p-6 text-center">
+            <AlertTriangle className="w-12 h-12 text-warning" />
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">Servidor online, mas o WhatsApp não gerou o QR</p>
+              <p className="text-sm text-muted-foreground">
+                A VPS respondeu <span className="font-mono text-foreground">disconnected</span>. Isso é problema da sessão do Baileys na VPS, não do site.
+              </p>
+            </div>
+            <button
+              onClick={handleRetry}
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:brightness-110 transition-all"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Atualizar status
+            </button>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-4 p-8 w-64 h-64 justify-center">
+          <div className="flex flex-col items-center gap-4 p-8 w-full justify-center text-center">
             <Loader2 className="w-10 h-10 text-primary animate-spin" />
             <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
           </div>
@@ -196,3 +220,4 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
 };
 
 export default QRCodeScanner;
+
