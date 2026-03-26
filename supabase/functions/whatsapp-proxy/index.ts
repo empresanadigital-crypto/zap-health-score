@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const VPS_API = "http://174.138.70.214:3333";
+const VPS_API = "http://46.101.125.49:3333";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
