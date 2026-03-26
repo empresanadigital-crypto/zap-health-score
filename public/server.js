@@ -13,6 +13,15 @@ var path = require("path");
 var app = express();
 app.use(express.json());
 
+// CORS para qualquer origem
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+  next();
+});
+
 var AUTH_DIR = path.join(__dirname, "auth_state");
 var sessionCounter = 0;
 
@@ -243,8 +252,7 @@ function startSession() {
     fetchLatestBaileysVersion()
   ]).then(function (results) {
     var auth = results[0];
-    var versionInfo = results[1];
-    var waVersion = versionInfo.version;
+    var waVersion = results[1].version;
     console.log("[start] Using WA version:", waVersion);
 
     var sock = makeWASocket({
@@ -254,7 +262,10 @@ function startSession() {
       logger: pino({ level: "silent" }),
       browser: Browsers.macOS("Chrome"),
       markOnlineOnConnect: false,
-      syncFullHistory: false
+      syncFullHistory: false,
+      getMessage: async function (key) {
+        return { conversation: "" };
+      }
     });
 
     state.sock = sock;
@@ -311,7 +322,7 @@ function startSession() {
             state.analysisData = data;
             state.status = "ready";
             state.lastError = null;
-            console.log("[ready] analysis available and session kept online");
+            console.log("[ready] analysis available - session kept online");
           })
           .catch(function (error) {
             state.lastError = error && error.message ? error.message : String(error);
@@ -345,6 +356,8 @@ function startSession() {
     console.error("[start] error:", state.lastError);
   });
 }
+
+// ─── ROTAS ───
 
 app.get("/api/qr", function (req, res) {
   if (["idle", "disconnected", "error"].includes(state.status)) {
@@ -393,5 +406,5 @@ app.get("/api/health", function (req, res) {
 });
 
 app.listen(3333, "0.0.0.0", function () {
-  console.log("[server] ReadyZap running on port 3333");
+  console.log("[server] CheckZap running on port 3333");
 });
