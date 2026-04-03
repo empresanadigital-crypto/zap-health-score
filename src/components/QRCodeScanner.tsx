@@ -213,7 +213,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
         className="flex flex-col items-center gap-6 w-full max-w-lg"
       >
         <div className="glass-card p-8 flex flex-col items-center gap-6 w-full">
-          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
+          <div className="p-4 rounded-lg" style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.12)' }}>
             <QrCode className="w-12 h-12 text-primary" />
           </div>
 
@@ -227,15 +227,15 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
           </div>
 
           <div className="w-full space-y-3 text-sm">
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/30 border border-border/30">
+            <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <span className="text-primary font-bold mt-0.5">1</span>
               <p className="text-muted-foreground">Clique em "Iniciar Diagnóstico"</p>
             </div>
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/30 border border-border/30">
+            <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <span className="text-primary font-bold mt-0.5">2</span>
               <p className="text-muted-foreground">Escaneie o QR Code com seu WhatsApp</p>
             </div>
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/30 border border-border/30">
+            <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <span className="text-primary font-bold mt-0.5">3</span>
               <p className="text-muted-foreground">Receba o relatório completo em segundos</p>
             </div>
@@ -243,7 +243,8 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
 
           <button
             onClick={handleStart}
-            className="flex items-center gap-2 px-8 py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:brightness-110 transition-all glow-green-sm w-full justify-center"
+            className="flex items-center gap-2 px-8 py-3.5 text-white font-bold rounded-lg hover:brightness-110 transition-all w-full justify-center"
+            style={{ background: 'linear-gradient(135deg, #3b82f6, #18f26a)', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}
           >
             <Play className="w-5 h-5" />
             Iniciar Diagnóstico
@@ -277,14 +278,15 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
         Abra o WhatsApp → Configurações → Aparelhos conectados → Conectar
       </p>
 
-      <div className="glass-card p-6 glow-green-sm w-full">
+      <div className="glass-card p-6 w-full">
         {error ? (
           <div className="flex flex-col items-center gap-4 p-8 text-center">
             <WifiOff className="w-12 h-12 text-destructive" />
             <p className="text-sm text-destructive">{error}</p>
             <button
               onClick={handleRetry}
-              className="px-6 py-2 text-sm bg-primary text-primary-foreground rounded-xl hover:brightness-110 transition-all"
+              className="px-6 py-2 text-sm text-white font-bold rounded-lg hover:brightness-110 transition-all"
+              style={{ background: 'linear-gradient(135deg, #3b82f6, #18f26a)', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}
             >
               Tentar novamente
             </button>
@@ -315,7 +317,8 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
             {showRetryButton && (
               <button
                 onClick={handleRetry}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:brightness-110 transition-all"
+                className="inline-flex items-center gap-2 px-6 py-2.5 text-white font-bold rounded-lg hover:brightness-110 transition-all"
+                style={{ background: 'linear-gradient(135deg, #3b82f6, #18f26a)', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}
               >
                 <RefreshCw className="w-4 h-4" />
                 Reiniciar conexão
