@@ -227,7 +227,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
           </div>
 
           <div className="w-full space-y-3 text-sm">
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/30 border border-border/30">
+            <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <span className="text-primary font-bold mt-0.5">1</span>
               <p className="text-muted-foreground">Clique em "Iniciar Diagnóstico"</p>
             </div>
