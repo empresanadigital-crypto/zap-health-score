@@ -16,6 +16,7 @@ const steps = [
 const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [waitingForAI, setWaitingForAI] = useState(false);
 
   useEffect(() => {
     const stepInterval = setInterval(() => {
