@@ -44,7 +44,13 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
         <div className="relative w-44 h-44">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
             <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--border))" strokeWidth="5" />
-            <motion.circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--primary))" strokeWidth="5" strokeLinecap="round" strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset: offset }} transition={{ duration: 1.5, ease: "easeOut" }} />
+            <defs>
+              <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="100%" stopColor="#18f26a" />
+              </linearGradient>
+            </defs>
+            <motion.circle cx="64" cy="64" r="58" fill="none" stroke="url(#scoreGradient)" strokeWidth="5" strokeLinecap="round" strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset: offset }} transition={{ duration: 1.5, ease: "easeOut" }} />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} className={`text-5xl font-bold font-mono ${getScoreColor(score.total)}`}>
