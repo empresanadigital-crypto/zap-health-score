@@ -86,9 +86,9 @@ const Index = () => {
 
         <main className="max-w-5xl mx-auto px-6 py-12 md:py-20">
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6" style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.12)' }}>
               <Activity className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">Diagnóstico com IA</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">Diagnóstico com IA</span>
             </div>
             <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
               Descubra a <span className="gradient-text">saúde</span> do seu
