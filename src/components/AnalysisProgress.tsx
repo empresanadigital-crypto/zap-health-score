@@ -63,7 +63,7 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
             cy="60"
             r="52"
             fill="none"
-            stroke="hsl(var(--primary))"
+            stroke="#3b82f6"
             strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={`${2 * Math.PI * 52}`}
@@ -72,7 +72,7 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold font-mono text-foreground">
+          <span className="text-2xl font-black tracking-tight text-foreground" style={{ letterSpacing: '-0.05em' }}>
             {Math.min(Math.round(progress), 100)}%
           </span>
         </div>
@@ -91,10 +91,10 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.15 }}
               className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
-                isActive ? "glass-card glow-green-sm" : isDone ? "opacity-60" : "opacity-30"
+                isActive ? "glass-card" : isDone ? "opacity-60" : "opacity-30"
               }`}
             >
-              <div className={`p-2 rounded-lg ${isActive ? "bg-primary/20" : "bg-secondary"}`}>
+              <div className={`p-2 rounded-lg`} style={isActive ? { background: 'rgba(59,130,246,0.12)' } : { background: 'rgba(255,255,255,0.04)' }}>
                 <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
               </div>
               <div className="flex-1">
@@ -115,9 +115,10 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center"
+                  className="w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(24,242,106,0.1)', border: '1px solid rgba(24,242,106,0.15)' }}
                 >
-                  <span className="text-primary text-xs">✓</span>
+                  <span style={{ color: '#18f26a', fontSize: '11px' }}>✓</span>
                 </motion.div>
               )}
             </motion.div>
@@ -131,7 +132,7 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 glass-card p-4 w-full"
         >
-          <Loader2 className="w-5 h-5 text-primary animate-spin shrink-0" />
+          <Loader2 className="w-5 h-5 animate-spin shrink-0" style={{ color: '#3b82f6' }} />
           <div>
             <p className="text-sm font-medium text-foreground">Gerando diagnóstico com IA...</p>
             <p className="text-xs text-muted-foreground mt-0.5">
