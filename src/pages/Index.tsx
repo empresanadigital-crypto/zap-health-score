@@ -99,7 +99,7 @@ const Index = () => {
             </p>
             <div className="flex items-center justify-center gap-6 mt-8 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-primary/70" />
+                <Shield className="w-4 h-4 text-primary" />
                 <span>100% gratuito</span>
               </div>
               <div className="flex items-center gap-1.5">
