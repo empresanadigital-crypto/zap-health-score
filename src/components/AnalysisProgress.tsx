@@ -91,7 +91,7 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.15 }}
               className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
-                isActive ? "glass-card glow-green-sm" : isDone ? "opacity-60" : "opacity-30"
+                isActive ? "glass-card" : isDone ? "opacity-60" : "opacity-30"
               }`}
             >
               <div className={`p-2 rounded-lg ${isActive ? "bg-primary/20" : "bg-secondary"}`}>
