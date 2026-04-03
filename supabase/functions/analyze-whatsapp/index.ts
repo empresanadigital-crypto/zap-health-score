@@ -286,6 +286,8 @@ const enhanceCopyWithAI = async ({
       }),
     });
 
+    clearTimeout(timeoutId);
+
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error("AI gateway error:", aiResponse.status, errorText);
