@@ -285,7 +285,8 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
             <p className="text-sm text-destructive">{error}</p>
             <button
               onClick={handleRetry}
-              className="px-6 py-2 text-sm bg-primary text-primary-foreground rounded-xl hover:brightness-110 transition-all"
+              className="px-6 py-2 text-sm text-white font-bold rounded-lg hover:brightness-110 transition-all"
+              style={{ background: 'linear-gradient(135deg, #3b82f6, #18f26a)', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}
             >
               Tentar novamente
             </button>
