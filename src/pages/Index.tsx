@@ -103,7 +103,7 @@ const Index = () => {
                 <span>100% gratuito</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-primary/70" />
+                <Activity className="w-4 h-4 text-primary" />
                 <span>Análise com IA real</span>
               </div>
             </div>
