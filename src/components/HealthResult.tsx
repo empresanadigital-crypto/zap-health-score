@@ -74,7 +74,7 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
           return (
             <motion.div key={index} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 + index * 0.1 }} className="glass-card p-4 text-center">
               <Icon className="w-5 h-5 mx-auto mb-2 text-primary" />
-              <p className="text-lg font-bold font-mono text-foreground">{metric.value}</p>
+              <p className="text-lg font-black text-foreground" style={{ letterSpacing: '-0.03em' }}>{metric.value}</p>
               <p className="text-xs text-muted-foreground mt-1">{metric.label}</p>
             </motion.div>
           );
