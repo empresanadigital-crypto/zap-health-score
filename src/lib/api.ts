@@ -42,11 +42,17 @@ export interface AIAnalysisResult {
 
 async function proxyCall(endpoint: string, method: string = "GET"): Promise<any> {
   const url = `${SUPABASE_URL}/functions/v1/whatsapp-proxy?endpoint=${encodeURIComponent(endpoint)}`;
-  
+
   const res = await fetch(url, {
     method,
     headers: { "Content-Type": "application/json" },
   });
+
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => "");
+    throw new Error(`Proxy error ${res.status}: ${errorBody}`);
+  }
+
   return res.json();
 }
 
