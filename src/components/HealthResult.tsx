@@ -12,9 +12,9 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
   const offset = circumference * (1 - score.total / 100);
 
   const getScoreColor = (s: number) => {
-    if (s >= 70) return "text-success";
-    if (s >= 40) return "text-warning";
-    return "text-destructive";
+    if (s >= 70) return "text-green-400";
+    if (s >= 40) return "text-yellow-400";
+    return "text-red-400";
   };
 
   const metrics = [
@@ -26,11 +26,11 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
 
   const recIcons = { success: CheckCircle, warning: AlertTriangle, info: Info };
   const recColors = {
-    success: "border-success/30 bg-success/5",
-    warning: "border-warning/30 bg-warning/5",
-    info: "border-info/30 bg-info/5",
+    success: "",
+    warning: "",
+    info: "",
   };
-  const recIconColors = { success: "text-success", warning: "text-warning", info: "text-info" };
+  const recIconColors = { success: "", warning: "", info: "" };
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-3xl space-y-8">
@@ -44,13 +44,19 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
         <div className="relative w-44 h-44">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
             <circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--border))" strokeWidth="5" />
-            <motion.circle cx="64" cy="64" r="58" fill="none" stroke="hsl(var(--primary))" strokeWidth="5" strokeLinecap="round" strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset: offset }} transition={{ duration: 1.5, ease: "easeOut" }} />
+            <defs>
+              <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="100%" stopColor="#18f26a" />
+              </linearGradient>
+            </defs>
+            <motion.circle cx="64" cy="64" r="58" fill="none" stroke="url(#scoreGradient)" strokeWidth="5" strokeLinecap="round" strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset: offset }} transition={{ duration: 1.5, ease: "easeOut" }} />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} className={`text-5xl font-bold font-mono ${getScoreColor(score.total)}`}>
+            <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} className="text-5xl font-black" style={{ letterSpacing: '-0.05em', background: 'linear-gradient(160deg, #ffffff 20%, rgba(200,210,255,0.5) 60%, rgba(242,242,255,0.15))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               {score.total}
             </motion.span>
-            <span className="text-xs text-muted-foreground uppercase tracking-wider mt-1">score IA</span>
+            <span className="text-xs uppercase mt-1 font-bold" style={{ color: 'rgba(242,242,255,0.25)', letterSpacing: '0.10em' }}>score IA</span>
           </div>
         </div>
 
@@ -68,20 +74,20 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
           return (
             <motion.div key={index} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 + index * 0.1 }} className="glass-card p-4 text-center">
               <Icon className="w-5 h-5 mx-auto mb-2 text-primary" />
-              <p className="text-lg font-bold font-mono text-foreground">{metric.value}</p>
+              <p className="text-lg font-black text-foreground" style={{ letterSpacing: '-0.03em' }}>{metric.value}</p>
               <p className="text-xs text-muted-foreground mt-1">{metric.label}</p>
             </motion.div>
           );
         })}
       </div>
 
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.2 }} className="glass-card p-6 glow-green text-center">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.2 }} className="glass-card p-6 text-center" style={{ boxShadow: '0 4px 24px rgba(59,130,246,0.15)' }}>
         <div className="flex items-center justify-center gap-2 mb-3">
           <Shield className="w-6 h-6 text-primary" />
           <h3 className="text-lg font-bold text-foreground">Limite seguro de disparo</h3>
         </div>
         <div className="flex items-baseline justify-center gap-2">
-          <span className="text-4xl font-bold font-mono gradient-text">
+          <span className="text-4xl font-black" style={{ letterSpacing: '-0.05em', background: 'linear-gradient(160deg, #ffffff 20%, rgba(200,210,255,0.5) 60%, rgba(242,242,255,0.15))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             {score.dispatchRange.min} – {score.dispatchRange.max}
           </span>
           <span className="text-muted-foreground">msgs/dia</span>
@@ -96,8 +102,8 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
         {score.recommendations.map((rec, index) => {
           const Icon = recIcons[rec.type] || Info;
           return (
-            <motion.div key={index} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.4 + index * 0.1 }} className={`flex gap-4 p-4 rounded-xl border ${recColors[rec.type] || recColors.info}`}>
-              <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${recIconColors[rec.type] || recIconColors.info}`} />
+            <motion.div key={index} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.4 + index * 0.1 }} className="flex gap-4 p-4 rounded-lg" style={{ background: rec.type === 'success' ? 'rgba(24,242,106,0.05)' : rec.type === 'warning' ? 'rgba(245,158,11,0.05)' : 'rgba(59,130,246,0.05)', border: rec.type === 'success' ? '1px solid rgba(24,242,106,0.12)' : rec.type === 'warning' ? '1px solid rgba(245,158,11,0.12)' : '1px solid rgba(59,130,246,0.12)' }}>
+              <Icon className="w-5 h-5 mt-0.5 shrink-0" style={{ color: rec.type === 'success' ? '#18f26a' : rec.type === 'warning' ? '#f59e0b' : '#60a5fa' }} />
               <div>
                 <p className="font-medium text-sm text-foreground">{rec.title}</p>
                 <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
@@ -108,10 +114,10 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
       </div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }} className="text-center pt-4">
-        <button onClick={onRestart} className="px-8 py-3 bg-secondary text-secondary-foreground font-medium rounded-xl hover:bg-secondary/80 transition-all mr-4">
+        <button onClick={onRestart} className="px-8 py-3 font-semibold rounded-lg hover:brightness-110 transition-all mr-4" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(242,242,255,0.35)' }}>
           Novo Diagnóstico
         </button>
-        <a href="https://readyzap.com.br/#pricing" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:brightness-110 transition-all glow-green-sm">
+        <a href="https://readyzap.com.br/#pricing" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 text-white font-bold rounded-lg hover:brightness-110 transition-all" style={{ background: 'linear-gradient(135deg, #3b82f6, #18f26a)', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}>
           Começar Aquecimento
         </a>
       </motion.div>
