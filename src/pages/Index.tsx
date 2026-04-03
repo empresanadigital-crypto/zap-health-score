@@ -77,7 +77,7 @@ const Index = () => {
         <header className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
           <div className="flex items-center gap-2">
             <Zap className="w-6 h-6 text-primary" />
-            <span className="font-bold text-lg text-foreground">ReadyZap</span>
+            <span className="text-xl font-black tracking-tight gradient-text">ReadyZap</span>
           </div>
           <a href="https://readyzap.com.br" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Voltar ao site
