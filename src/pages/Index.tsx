@@ -77,7 +77,7 @@ const Index = () => {
         <header className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
           <div className="flex items-center gap-2">
             <Zap className="w-6 h-6 text-primary" />
-            <span className="font-bold text-lg text-foreground">ReadyZap</span>
+            <span className="text-xl font-black tracking-tight gradient-text">ReadyZap</span>
           </div>
           <a href="https://readyzap.com.br" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Voltar ao site
@@ -86,11 +86,11 @@ const Index = () => {
 
         <main className="max-w-5xl mx-auto px-6 py-12 md:py-20">
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6" style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.12)' }}>
               <Activity className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">Diagnóstico com IA</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">Diagnóstico com IA</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
+            <h1 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 leading-tight tracking-tight">
               Descubra a <span className="gradient-text">saúde</span> do seu
               <br className="hidden md:block" /> número WhatsApp
             </h1>
@@ -99,11 +99,11 @@ const Index = () => {
             </p>
             <div className="flex items-center justify-center gap-6 mt-8 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-primary/70" />
+                <Shield className="w-4 h-4 text-primary" />
                 <span>100% gratuito</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-primary/70" />
+                <Activity className="w-4 h-4 text-primary" />
                 <span>Análise com IA real</span>
               </div>
             </div>
@@ -131,8 +131,8 @@ const Index = () => {
         </main>
 
         <footer className="text-center py-8 space-y-2">
-          <p className="text-xs text-muted-foreground">© 2026 ReadyZap · Automação inteligente de WhatsApp</p>
-          <p className="text-xs text-muted-foreground/60 max-w-md mx-auto">
+          <p className="text-xs font-semibold" style={{ color: 'rgba(242,242,255,0.25)' }}>© 2026 ReadyZap · Automação inteligente de WhatsApp</p>
+          <p className="text-xs max-w-md mx-auto" style={{ color: 'rgba(242,242,255,0.15)' }}>
             Diagnóstico com IA baseado em dados reais do seu WhatsApp. Sessão desconectada após análise.
           </p>
         </footer>
