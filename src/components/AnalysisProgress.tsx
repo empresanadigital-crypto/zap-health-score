@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { MessageSquare, Users, Shield, Activity } from "lucide-react";
+import { MessageSquare, Users, Shield, Activity, Loader2 } from "lucide-react";
 
 interface AnalysisProgressProps {
   onComplete: () => void;
@@ -16,13 +16,17 @@ const steps = [
 const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [waitingForAI, setWaitingForAI] = useState(false);
 
   useEffect(() => {
     const stepInterval = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev >= steps.length - 1) {
           clearInterval(stepInterval);
-          setTimeout(onComplete, 800);
+          setTimeout(() => {
+            setWaitingForAI(true);
+            onComplete();
+          }, 800);
           return prev;
         }
         return prev + 1;
@@ -120,6 +124,22 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
           );
         })}
       </div>
+
+      {waitingForAI && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 glass-card p-4 w-full"
+        >
+          <Loader2 className="w-5 h-5 text-primary animate-spin shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-foreground">Gerando diagnóstico com IA...</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Analisando seus dados reais para montar o relatório personalizado.
+            </p>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
