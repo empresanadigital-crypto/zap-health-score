@@ -23,7 +23,10 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
       setCurrentStep((prev) => {
         if (prev >= steps.length - 1) {
           clearInterval(stepInterval);
-          setTimeout(onComplete, 800);
+          setTimeout(() => {
+            setWaitingForAI(true);
+            onComplete();
+          }, 800);
           return prev;
         }
         return prev + 1;
