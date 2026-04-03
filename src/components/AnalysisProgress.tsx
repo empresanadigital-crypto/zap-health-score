@@ -94,7 +94,7 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
                 isActive ? "glass-card" : isDone ? "opacity-60" : "opacity-30"
               }`}
             >
-              <div className={`p-2 rounded-lg ${isActive ? "bg-primary/20" : "bg-secondary"}`}>
+              <div className={`p-2 rounded-lg`} style={isActive ? { background: 'rgba(59,130,246,0.12)' } : { background: 'rgba(255,255,255,0.04)' }}>
                 <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
               </div>
               <div className="flex-1">
