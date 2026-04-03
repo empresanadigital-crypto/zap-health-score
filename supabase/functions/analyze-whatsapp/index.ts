@@ -334,7 +334,8 @@ Deno.serve(async (req) => {
           })
           .filter(Boolean)
       : [];
-    const groupCount = rawGroupCount ?? (groups.length ? groups.length : null);
+    // Preferir contagem real do array parseado sobre o número bruto
+    const groupCount = groups.length > 0 ? groups.length : rawGroupCount;
 
     const oldestMessageTimestampMs = normalizeTimestampMs(rawData.oldestMessageTimestamp);
     const accountAgeDays = oldestMessageTimestampMs
