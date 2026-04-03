@@ -131,8 +131,8 @@ const Index = () => {
         </main>
 
         <footer className="text-center py-8 space-y-2">
-          <p className="text-xs text-muted-foreground">© 2026 ReadyZap · Automação inteligente de WhatsApp</p>
-          <p className="text-xs text-muted-foreground/60 max-w-md mx-auto">
+          <p className="text-xs font-semibold" style={{ color: 'rgba(242,242,255,0.25)' }}>© 2026 ReadyZap · Automação inteligente de WhatsApp</p>
+          <p className="text-xs max-w-md mx-auto" style={{ color: 'rgba(242,242,255,0.15)' }}>
             Diagnóstico com IA baseado em dados reais do seu WhatsApp. Sessão desconectada após análise.
           </p>
         </footer>
