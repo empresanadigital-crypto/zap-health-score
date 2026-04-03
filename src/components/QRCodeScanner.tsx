@@ -278,7 +278,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
         Abra o WhatsApp → Configurações → Aparelhos conectados → Conectar
       </p>
 
-      <div className="glass-card p-6 glow-green-sm w-full">
+      <div className="glass-card p-6 w-full">
         {error ? (
           <div className="flex flex-col items-center gap-4 p-8 text-center">
             <WifiOff className="w-12 h-12 text-destructive" />
