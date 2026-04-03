@@ -243,7 +243,8 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
 
           <button
             onClick={handleStart}
-            className="flex items-center gap-2 px-8 py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:brightness-110 transition-all glow-green-sm w-full justify-center"
+            className="flex items-center gap-2 px-8 py-3.5 text-white font-bold rounded-lg hover:brightness-110 transition-all w-full justify-center"
+            style={{ background: 'linear-gradient(135deg, #3b82f6, #18f26a)', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}
           >
             <Play className="w-5 h-5" />
             Iniciar Diagnóstico
