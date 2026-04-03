@@ -63,7 +63,7 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
             cy="60"
             r="52"
             fill="none"
-            stroke="hsl(var(--primary))"
+            stroke="#3b82f6"
             strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={`${2 * Math.PI * 52}`}
