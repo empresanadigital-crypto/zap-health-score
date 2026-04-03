@@ -114,10 +114,10 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
       </div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }} className="text-center pt-4">
-        <button onClick={onRestart} className="px-8 py-3 bg-secondary text-secondary-foreground font-medium rounded-xl hover:bg-secondary/80 transition-all mr-4">
+        <button onClick={onRestart} className="px-8 py-3 font-semibold rounded-lg hover:brightness-110 transition-all mr-4" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(242,242,255,0.35)' }}>
           Novo Diagnóstico
         </button>
-        <a href="https://readyzap.com.br/#pricing" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:brightness-110 transition-all glow-green-sm">
+        <a href="https://readyzap.com.br/#pricing" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 text-white font-bold rounded-lg hover:brightness-110 transition-all" style={{ background: 'linear-gradient(135deg, #3b82f6, #18f26a)', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}>
           Começar Aquecimento
         </a>
       </motion.div>
