@@ -90,7 +90,7 @@ const Index = () => {
               <Activity className="w-4 h-4 text-primary" />
               <span className="text-xs font-bold uppercase tracking-widest text-primary">Diagnóstico com IA</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
+            <h1 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 leading-tight tracking-tight">
               Descubra a <span className="gradient-text">saúde</span> do seu
               <br className="hidden md:block" /> número WhatsApp
             </h1>
