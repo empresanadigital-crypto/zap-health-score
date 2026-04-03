@@ -213,7 +213,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
         className="flex flex-col items-center gap-6 w-full max-w-lg"
       >
         <div className="glass-card p-8 flex flex-col items-center gap-6 w-full">
-          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
+          <div className="p-4 rounded-lg" style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.12)' }}>
             <QrCode className="w-12 h-12 text-primary" />
           </div>
 
