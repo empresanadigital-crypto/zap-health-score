@@ -53,10 +53,10 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
             <motion.circle cx="64" cy="64" r="58" fill="none" stroke="url(#scoreGradient)" strokeWidth="5" strokeLinecap="round" strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset: offset }} transition={{ duration: 1.5, ease: "easeOut" }} />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} className={`text-5xl font-bold font-mono ${getScoreColor(score.total)}`}>
+            <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} className="text-5xl font-black" style={{ letterSpacing: '-0.05em', background: 'linear-gradient(160deg, #ffffff 20%, rgba(200,210,255,0.5) 60%, rgba(242,242,255,0.15))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               {score.total}
             </motion.span>
-            <span className="text-xs text-muted-foreground uppercase tracking-wider mt-1">score IA</span>
+            <span className="text-xs uppercase mt-1 font-bold" style={{ color: 'rgba(242,242,255,0.25)', letterSpacing: '0.10em' }}>score IA</span>
           </div>
         </div>
 
