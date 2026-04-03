@@ -26,11 +26,11 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
 
   const recIcons = { success: CheckCircle, warning: AlertTriangle, info: Info };
   const recColors = {
-    success: "border-success/30 bg-success/5",
-    warning: "border-warning/30 bg-warning/5",
-    info: "border-info/30 bg-info/5",
+    success: "",
+    warning: "",
+    info: "",
   };
-  const recIconColors = { success: "text-success", warning: "text-warning", info: "text-info" };
+  const recIconColors = { success: "", warning: "", info: "" };
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-3xl space-y-8">
