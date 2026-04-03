@@ -102,8 +102,8 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
         {score.recommendations.map((rec, index) => {
           const Icon = recIcons[rec.type] || Info;
           return (
-            <motion.div key={index} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.4 + index * 0.1 }} className={`flex gap-4 p-4 rounded-xl border ${recColors[rec.type] || recColors.info}`}>
-              <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${recIconColors[rec.type] || recIconColors.info}`} />
+            <motion.div key={index} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.4 + index * 0.1 }} className="flex gap-4 p-4 rounded-lg" style={{ background: rec.type === 'success' ? 'rgba(24,242,106,0.05)' : rec.type === 'warning' ? 'rgba(245,158,11,0.05)' : 'rgba(59,130,246,0.05)', border: rec.type === 'success' ? '1px solid rgba(24,242,106,0.12)' : rec.type === 'warning' ? '1px solid rgba(245,158,11,0.12)' : '1px solid rgba(59,130,246,0.12)' }}>
+              <Icon className="w-5 h-5 mt-0.5 shrink-0" style={{ color: rec.type === 'success' ? '#18f26a' : rec.type === 'warning' ? '#f59e0b' : '#60a5fa' }} />
               <div>
                 <p className="font-medium text-sm text-foreground">{rec.title}</p>
                 <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
