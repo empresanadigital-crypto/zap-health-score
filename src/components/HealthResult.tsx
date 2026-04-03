@@ -81,7 +81,7 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
         })}
       </div>
 
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.2 }} className="glass-card p-6 glow-green text-center">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.2 }} className="glass-card p-6 text-center" style={{ boxShadow: '0 4px 24px rgba(59,130,246,0.15)' }}>
         <div className="flex items-center justify-center gap-2 mb-3">
           <Shield className="w-6 h-6 text-primary" />
           <h3 className="text-lg font-bold text-foreground">Limite seguro de disparo</h3>
