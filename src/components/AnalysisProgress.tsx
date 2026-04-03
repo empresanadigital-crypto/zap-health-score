@@ -115,9 +115,10 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center"
+                  className="w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(24,242,106,0.1)', border: '1px solid rgba(24,242,106,0.15)' }}
                 >
-                  <span className="text-primary text-xs">✓</span>
+                  <span style={{ color: '#18f26a', fontSize: '11px' }}>✓</span>
                 </motion.div>
               )}
             </motion.div>
