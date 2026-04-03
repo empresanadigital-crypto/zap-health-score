@@ -12,9 +12,9 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
   const offset = circumference * (1 - score.total / 100);
 
   const getScoreColor = (s: number) => {
-    if (s >= 70) return "text-success";
-    if (s >= 40) return "text-warning";
-    return "text-destructive";
+    if (s >= 70) return "text-green-400";
+    if (s >= 40) return "text-yellow-400";
+    return "text-red-400";
   };
 
   const metrics = [
