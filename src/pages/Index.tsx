@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Activity, Shield, Zap } from "lucide-react";
 import QRCodeScanner from "@/components/QRCodeScanner";
@@ -14,8 +14,23 @@ const Index = () => {
   const [step, setStep] = useState<Step>("scan");
   const [healthScore, setHealthScore] = useState<HealthScore | null>(null);
   const [rawData, setRawData] = useState<NonNullable<AnalysisData["data"]> | null>(null);
+  const hasActiveSessionRef = useRef(false);
+
+  // Desconecta sessão ao fechar/sair da aba
+  useEffect(() => {
+    const cleanup = () => {
+      if (hasActiveSessionRef.current) {
+        navigator.sendBeacon(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-proxy?endpoint=${encodeURIComponent("/api/disconnect")}`
+        );
+      }
+    };
+    window.addEventListener("beforeunload", cleanup);
+    return () => window.removeEventListener("beforeunload", cleanup);
+  }, []);
 
   const handleScan = (data: NonNullable<AnalysisData["data"]>) => {
+    hasActiveSessionRef.current = true;
     setRawData(data);
     setStep("analyzing");
   };
@@ -31,6 +46,7 @@ const Index = () => {
         // ignora erro de disconnect, análise já foi concluída
       }
       setStep("result");
+      hasActiveSessionRef.current = false;
     } catch (err) {
       console.error("AI analysis failed:", err);
       toast.error("Erro na análise com IA. Tente novamente.");
@@ -39,7 +55,12 @@ const Index = () => {
   }, [rawData]);
 
   const handleRestart = async () => {
-    await disconnectSession();
+    try {
+      await disconnectSession();
+    } catch {
+      // ignora erro de disconnect no restart
+    }
+    hasActiveSessionRef.current = false;
     setStep("scan");
     setHealthScore(null);
     setRawData(null);
