@@ -87,7 +87,7 @@ const HealthResult = ({ score, onRestart }: HealthResultProps) => {
           <h3 className="text-lg font-bold text-foreground">Limite seguro de disparo</h3>
         </div>
         <div className="flex items-baseline justify-center gap-2">
-          <span className="text-4xl font-bold font-mono gradient-text">
+          <span className="text-4xl font-black" style={{ letterSpacing: '-0.05em', background: 'linear-gradient(160deg, #ffffff 20%, rgba(200,210,255,0.5) 60%, rgba(242,242,255,0.15))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             {score.dispatchRange.min} – {score.dispatchRange.max}
           </span>
           <span className="text-muted-foreground">msgs/dia</span>
