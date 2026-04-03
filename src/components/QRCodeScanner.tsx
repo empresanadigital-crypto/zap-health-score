@@ -7,7 +7,10 @@ interface QRCodeScannerProps {
   onScan: (data: NonNullable<AnalysisData["data"]>) => void;
 }
 
-const ANALYSIS_FRESHNESS_TOLERANCE_MS = 15000;
+const ANALYSIS_FRESHNESS_TOLERANCE_MS = 120_000;
+const SESSION_TIMEOUT_MS = 120_000;
+const QR_STALE_MS = 25_000;
+const SHOW_RETRY_AFTER_MS = 8_000;
 
 const normalizeTimestamp = (timestamp: number) => {
   return timestamp < 1_000_000_000_000 ? timestamp * 1000 : timestamp;
@@ -18,9 +21,11 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [showRetryButton, setShowRetryButton] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const connectedRef = useRef(false);
   const sessionStartedAtRef = useRef(0);
+  const qrReceivedAtRef = useRef(0);
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
 
@@ -37,9 +42,15 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     let cancelled = false;
     connectedRef.current = false;
     sessionStartedAtRef.current = Date.now();
+    qrReceivedAtRef.current = 0;
     setStatus("loading");
     setError(null);
     setQrImage(null);
+    setShowRetryButton(false);
+
+    const retryTimer = setTimeout(() => {
+      if (!cancelled) setShowRetryButton(true);
+    }, SHOW_RETRY_AFTER_MS);
 
     const fetchFreshAnalysis = async () => {
       const analysis = await fetchAnalysis();
@@ -83,10 +94,29 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     };
 
     const poll = async () => {
+      if (document.hidden) return;
+
+      if (Date.now() - sessionStartedAtRef.current > SESSION_TIMEOUT_MS) {
+        stopPolling();
+        setError("O tempo limite da sessão expirou. Tente novamente.");
+        setStatus("error");
+        return;
+      }
+
       try {
         if (connectedRef.current) {
           await fetchFreshAnalysis();
           return;
+        }
+
+        if (
+          qrReceivedAtRef.current > 0 &&
+          Date.now() - qrReceivedAtRef.current > QR_STALE_MS &&
+          status === "waiting_scan"
+        ) {
+          console.info("[qr] QR expirado, solicitando novo...");
+          qrReceivedAtRef.current = 0;
+          setQrImage(null);
         }
 
         const qrRes = await fetchQR();
@@ -107,6 +137,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
 
         if (qrRes.qr) {
           setQrImage(qrRes.qr);
+          qrReceivedAtRef.current = Date.now();
         } else {
           setQrImage(null);
         }
@@ -121,9 +152,16 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     poll();
     pollRef.current = setInterval(poll, 3000);
 
+    const handleVisibility = () => {
+      if (!document.hidden && !cancelled) poll();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       cancelled = true;
+      clearTimeout(retryTimer);
       stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [started, stopPolling]);
 
@@ -136,10 +174,12 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     }
     connectedRef.current = false;
     sessionStartedAtRef.current = 0;
+    qrReceivedAtRef.current = 0;
     setStarted(true);
     setError(null);
     setQrImage(null);
     setStatus("loading");
+    setShowRetryButton(false);
   };
 
   const handleRetry = async () => {
@@ -150,6 +190,8 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
     setStatus("idle");
     connectedRef.current = false;
     sessionStartedAtRef.current = 0;
+    qrReceivedAtRef.current = 0;
+    setShowRetryButton(false);
 
     try {
       await disconnectSession();
@@ -254,7 +296,7 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
               <div className="absolute inset-0 rounded-xl border-2 border-primary/30" />
             </div>
             <p className="text-xs text-muted-foreground text-center">
-              Se o código expirar, clique em reiniciar conexão.
+              O QR é atualizado automaticamente se expirar.
             </p>
           </div>
         ) : isWaitingForSession ? (
@@ -262,21 +304,23 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
             <Loader2 className="w-10 h-10 text-primary animate-spin" />
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground">
-                {isCollecting ? "Conectando... aguarde." : "Gerando conexão... aguarde."}
+                {isCollecting ? "Coletando dados do WhatsApp..." : "Preparando sessão..."}
               </p>
               <p className="text-sm text-muted-foreground">
                 {isCollecting
-                  ? "QR lido. Estamos aguardando dados reais da sessão atual antes de mostrar qualquer resultado."
-                  : "Estamos estabilizando a sessão com o WhatsApp para gerar ou validar o QR Code."}
+                  ? "WhatsApp conectado com sucesso. Lendo seus grupos, conversas e perfil."
+                  : "Conectando ao servidor do WhatsApp para gerar o QR Code."}
               </p>
             </div>
-            <button
-              onClick={handleRetry}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:brightness-110 transition-all"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Reiniciar conexão
-            </button>
+            {showRetryButton && (
+              <button
+                onClick={handleRetry}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:brightness-110 transition-all"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Reiniciar conexão
+              </button>
+            )}
           </div>
         ) : null}
       </div>
