@@ -72,7 +72,7 @@ const AnalysisProgress = ({ onComplete }: AnalysisProgressProps) => {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold font-mono text-foreground">
+          <span className="text-2xl font-black tracking-tight text-foreground" style={{ letterSpacing: '-0.05em' }}>
             {Math.min(Math.round(progress), 100)}%
           </span>
         </div>
