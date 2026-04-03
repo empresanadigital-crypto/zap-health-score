@@ -317,7 +317,8 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
             {showRetryButton && (
               <button
                 onClick={handleRetry}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-medium hover:brightness-110 transition-all"
+                className="inline-flex items-center gap-2 px-6 py-2.5 text-white font-bold rounded-lg hover:brightness-110 transition-all"
+                style={{ background: 'linear-gradient(135deg, #3b82f6, #18f26a)', boxShadow: '0 4px 16px rgba(59,130,246,0.25)' }}
               >
                 <RefreshCw className="w-4 h-4" />
                 Reiniciar conexão
