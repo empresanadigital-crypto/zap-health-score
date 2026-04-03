@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { MessageSquare, Users, Shield, Activity } from "lucide-react";
+import { MessageSquare, Users, Shield, Activity, Loader2 } from "lucide-react";
 
 interface AnalysisProgressProps {
   onComplete: () => void;
