@@ -79,9 +79,24 @@ const Index = () => {
             <Zap className="w-6 h-6 text-primary" />
             <span className="text-xl font-black tracking-tight gradient-text">ReadyZap</span>
           </div>
-          <a href="https://readyzap.com.br" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Voltar ao site
-          </a>
+          <div className="flex items-center gap-4">
+            <div
+              onClick={() => window.open("https://app.readyzap.com.br/dashboard", "_blank")}
+              className="flex items-center gap-2 cursor-pointer transition-all"
+              style={{ padding: "6px 10px", borderRadius: 7, fontSize: 12, color: "rgba(242,242,255,0.22)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(59,130,246,0.08)"; e.currentTarget.style.color = "#60a5fa"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(242,242,255,0.22)"; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>ReadyZap</div>
+                <div style={{ fontSize: 9, opacity: 0.6 }}>Aquecedor de chips</div>
+              </div>
+            </div>
+            <a href="https://readyzap.com.br" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Voltar ao site
+            </a>
+          </div>
         </header>
 
         <main className="max-w-5xl mx-auto px-6 py-12 md:py-20">
