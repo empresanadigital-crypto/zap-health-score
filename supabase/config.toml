@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.analyze-whatsapp]
 verify_jwt = false
+
+[functions.sso-login]
+verify_jwt = false
